@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reportes de Servicio VRU — BLAU CYT</title>
+<meta name="theme-color" content="#1F3864">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f0f2f5; color: #222; font-size: 13px; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 1.5rem; }
+
+/* ── HEADER ── */
+.header-wrap { background: #1F3864; border-radius: 10px 10px 0 0; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.header-logo-col { display: flex; align-items: center; gap: 14px; }
+.logo-img { height: 46px; width: auto; border-radius: 4px; background: #fff; padding: 3px 8px; }
+.header-brand { display: flex; flex-direction: column; }
+.brand-name { font-size: 20px; font-weight: 700; color: #F0C040; letter-spacing: 1px; line-height: 1.2; }
+.brand-sub { font-size: 11px; color: rgba(255,255,255,0.75); margin-top: 3px; letter-spacing: 0.3px; }
+.header-title-col { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.header-title { font-size: 19px; font-weight: 700; color: #fff; }
+.header-badges { display: flex; gap: 8px; }
+.badge { font-size: 11px; font-weight: 700; padding: 4px 14px; border-radius: 20px; }
+.badge-orange { background: #e8813a; color: #fff; }
+.badge-blue { background: #2E75B6; color: #fff; }
+
+/* ── BODY CARD ── */
+.card { background: #fff; border: 1px solid #d0d8e4; border-top: none; border-radius: 0 0 10px 10px; padding: 1.4rem 1.5rem; }
+
+/* ── SECTION TITLE ── */
+.sec-title { background: #2E75B6; color: #fff; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 6px; margin: 1.2rem 0 0.7rem; letter-spacing: 0.3px; display: flex; align-items: center; gap: 8px; }
+.sec-title:first-of-type { margin-top: 0; }
+
+/* ── FORM GRID ── */
+.fgrid { display: grid; gap: 10px 16px; }
+.g2 { grid-template-columns: 1fr 1fr; }
+.g3 { grid-template-columns: 1fr 1fr 1fr; }
+.g4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.g1 { grid-template-columns: 1fr; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 10px; font-weight: 700; color: #5a6478; text-transform: uppercase; letter-spacing: 0.4px; }
+.field input, .field select, .field textarea {
+  border: 1px solid #c8d0dc;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: Arial, sans-serif;
+  color: #222;
+  background: #fafbfc;
+  transition: border-color 0.15s, background 0.15s;
+  width: 100%;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: #2E75B6;
+  background: #fff;
+  outline: none;
+}
+.field textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+.field input[type="date"], .field input[type="time"] { cursor: pointer; }
+.required label::after { content: " *"; color: #c0392b; }
+
+/* ── TIPO MANT TOGGLE ── */
+.toggle-group { display: flex; gap: 0; border: 1px solid #c8d0dc; border-radius: 6px; overflow: hidden; }
+.toggle-group input[type="radio"] { display: none; }
+.toggle-group label { flex: 1; text-align: center; padding: 7px 10px; font-size: 12px; font-weight: 700; cursor: pointer; background: #fafbfc; color: #7a8499; transition: background 0.15s, color 0.15s; border-right: 1px solid #c8d0dc; }
+.toggle-group label:last-of-type { border-right: none; }
+.toggle-group input:checked + label { background: #2E75B6; color: #fff; }
+
+/* ── TASKS ── */
+.task-rows { display: flex; flex-direction: column; gap: 8px; }
+.task-row { display: flex; align-items: flex-start; gap: 8px; }
+.task-num { background: #2E75B6; color: #fff; font-size: 11px; font-weight: 700; border-radius: 50%; min-width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; margin-top: 6px; flex-shrink: 0; }
+.task-row textarea { min-height: 48px; }
+.btn-add { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12px; font-weight: 700; color: #2E75B6; background: #eef4fb; border: 1px dashed #2E75B6; border-radius: 6px; padding: 6px 14px; cursor: pointer; font-family: Arial; transition: background 0.15s; }
+.btn-add:hover { background: #d6e8f8; }
+.btn-remove { background: none; border: none; color: #c0392b; font-size: 18px; cursor: pointer; line-height: 1; margin-top: 4px; padding: 2px 6px; border-radius: 4px; transition: background 0.15s; }
+.btn-remove:hover { background: #fdecea; }
+
+/* ── REPUESTOS TABLE ── */
+.rep-table { width: 100%; border-collapse: collapse; }
+.rep-table th { background: #eef2f8; font-size: 11px; font-weight: 700; color: #5a6478; text-align: left; padding: 7px 10px; border: 1px solid #d0d8e4; text-transform: uppercase; letter-spacing: 0.3px; }
+.rep-table td { border: 1px solid #d0d8e4; padding: 4px 6px; }
+.rep-table input { border: none; background: transparent; font-size: 13px; width: 100%; padding: 4px 4px; font-family: Arial; }
+.rep-table input:focus { outline: 1px solid #2E75B6; border-radius: 3px; background: #f0f6fd; }
+.rep-table tr:nth-child(even) { background: #fafbfc; }
+
+/* ── RECOMENDACIONES ── */
+.rec-box { border-left: 3px solid #e8813a; background: #fff8ec; border-radius: 0 6px 6px 0; padding: 10px 12px; }
+.rec-box textarea { background: transparent; border: none; color: #7a4a10; font-size: 13px; width: 100%; resize: vertical; min-height: 60px; font-family: Arial; }
+.rec-box textarea:focus { outline: none; }
+
+/* ── FIRMAS ── */
+.firma-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 0.5rem; }
+.firma-box { border: 1px solid #c8d0dc; border-radius: 8px; padding: 1rem; text-align: center; }
+.firma-role { font-size: 11px; color: #7a8499; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 0.75rem; }
+.firma-canvas-wrap { border-top: 1.5px solid #b0bac8; padding-top: 8px; position: relative; }
+canvas.firma-canvas { width: 100%; height: 80px; cursor: crosshair; touch-action: none; }
+.btn-clear-sig { font-size: 10px; color: #c0392b; background: none; border: none; cursor: pointer; font-family: Arial; margin-top: 4px; }
+.firma-name { font-size: 12px; color: #5a6478; margin-top: 4px; }
+
+/* ── ACTIONS ── */
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 1.4rem; justify-content: flex-end; }
+.btn { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; font-family: Arial; padding: 9px 20px; border-radius: 8px; cursor: pointer; transition: background 0.15s, transform 0.1s; border: none; }
+.btn:active { transform: scale(0.97); }
+.btn-secondary { background: #eef2f8; color: #1F3864; border: 1px solid #c8d0dc; }
+.btn-secondary:hover { background: #dce6f0; }
+.btn-primary { background: #2E75B6; color: #fff; }
+.btn-primary:hover { background: #1F5E99; }
+.btn-danger { background: #c0392b; color: #fff; }
+.btn-danger:hover { background: #a93226; }
+.btn-print { background: #1F3864; color: #fff; }
+.btn-print:hover { background: #162848; }
+
+/* ── DIVIDER ── */
+.divider { height: 1px; background: #e4e9f0; margin: 1rem 0; }
+
+/* ── PRINT ── */
+@media print {
+  body { background: #fff; }
+  .actions { display: none; }
+  .btn-add, .btn-remove, .btn-clear-sig { display: none; }
+  .header-wrap { background: #1F3864 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .sec-title { background: #2E75B6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .card { border: 1px solid #ccc; border-radius: 0; }
+  .field input, .field select, .field textarea { border: none; border-bottom: 1px solid #aaa; border-radius: 0; background: transparent; padding: 4px 2px; }
+  .toggle-group input:checked + label { background: #2E75B6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .rep-table input { border-bottom: 1px solid #aaa; }
+}
+
+/* ── PARTE DE SERVICIO DE MANTENIMIENTO (PM) ── */
+#pm-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:99998; overflow-y:auto; }
+.pm-shell { max-width:960px; margin:16px auto; padding:0 12px 40px; }
+.pm { background:#fff; border-radius:12px; overflow:hidden; font-family:Arial,sans-serif; font-size:12px; color:#222; }
+.pm-bar { background:#1F3864; padding:10px 16px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.pm-bar-title { color:#F0C040; font-weight:700; font-size:14px; }
+.pm-bar button { background:rgba(255,255,255,0.15); border:none; color:#fff; font-size:18px; border-radius:8px; padding:4px 12px; cursor:pointer; }
+.pm-page { padding:18px 20px; }
+.pm-head { display:grid; grid-template-columns:auto 1fr auto; gap:16px; align-items:center; margin-bottom:14px; }
+.pm-head img { height:52px; width:auto; }
+.pm-title { text-align:center; font-weight:700; font-size:15px; line-height:1.35; }
+.pm-idbox { display:grid; grid-template-columns:auto 140px; gap:3px 6px; align-items:center; font-size:10px; }
+.pm-idbox span { text-align:right; }
+.pm input, .pm select, .pm textarea { font-family:Arial,sans-serif; font-size:12px; color:#222; border:1px solid #9aa3b0; background:#eef0f3; padding:5px 7px; width:100%; border-radius:2px; }
+.pm input:focus, .pm select:focus, .pm textarea:focus { outline:none; border-color:#2E75B6; background:#fff; }
+.pm-times { display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:10px; }
+.pm-times label { display:block; font-size:10px; font-weight:700; color:#5a6478; margin-bottom:3px; }
+.pm-hu { display:grid; grid-template-columns:1fr 1fr; gap:4px; }
+.pm-cliente { display:grid; grid-template-columns:110px 1fr; border:1px solid #9aa3b0; margin-bottom:12px; }
+.pm-cliente div { padding:7px 10px; font-weight:700; }
+.pm-cliente input { border:none; border-left:1px solid #9aa3b0; border-radius:0; }
+.pm-scroll { overflow-x:auto; }
+.pm-table { width:100%; border-collapse:collapse; min-width:720px; }
+.pm-table th { background:#FFC000; font-size:11.5px; padding:5px 6px; border:1px solid #555; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.pm-table td { border:1px solid #555; padding:2px 4px; font-size:11.5px; }
+.pm-table td input, .pm-table td select { border:none; background:transparent; padding:3px 4px; }
+.pm-table td.pm-v { width:70px; } .pm-table td.pm-u { width:64px; color:#444; }
+.pm-table td.pm-sn { width:58px; } .pm-table td.pm-q { width:80px; }
+.pm-bottom { display:grid; grid-template-columns:1fr 1.15fr; gap:22px; margin-top:16px; }
+.pm-sig { margin-bottom:12px; }
+.pm-sig-label { text-align:center; font-size:12px; margin-bottom:4px; }
+.pm-sig canvas { display:block; width:100%; height:110px; border:1px solid #2E75B6; background:#fff; touch-action:none; }
+.pm-sig button { margin-top:4px; font-size:11px; background:none; border:1px solid #c8d0dc; border-radius:5px; padding:3px 10px; cursor:pointer; color:#5a6478; }
+.pm-grid { width:100%; border-collapse:collapse; margin-bottom:10px; }
+.pm-grid th { background:#FFC000; font-weight:400; font-size:12px; padding:3px; border:1px solid #555; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.pm-grid td { border:1px solid #555; padding:1px 4px; font-size:12px; }
+.pm-grid td:first-child { width:42%; }
+.pm-grid td input { border:none; background:#f2f2f2; padding:3px 4px; }
+.pm-anexo-title { text-align:center; font-size:22px; font-weight:700; text-decoration:underline; margin:6px 0 12px; }
+.pm-anexo-box { border:1px solid #555; }
+.pm-anexo-box > div:first-child { background:#FFC000; font-weight:700; font-size:12px; padding:4px 6px; border-bottom:1px solid #555; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.pm-anexo-box textarea { border:none; background:#fff; min-height:140px; resize:vertical; line-height:1.5; }
+.pm-fotos { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:8px; }
+.pm-foto { position:relative; }
+.pm-foto img { width:100%; height:220px; object-fit:cover; display:block; }
+.pm-foto button { position:absolute; top:4px; right:4px; background:rgba(192,57,43,0.9); color:#fff; border:none; border-radius:50%; width:24px; height:24px; cursor:pointer; }
+.pm-add-foto { margin:0 8px 8px; display:inline-block; font-size:12px; font-weight:700; color:#2E75B6; border:1px dashed #2E75B6; border-radius:6px; padding:7px 14px; cursor:pointer; }
+.pm-actions { display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; padding:12px 20px 18px; border-top:1px solid #e0e4ea; }
+.pm-actions button, .pm-actions label { font-family:Arial; font-size:13px; font-weight:700; border:none; border-radius:7px; padding:9px 16px; cursor:pointer; }
+.pm-b-red { background:#fdecea; color:#c0392b; } .pm-b-grey { background:#e8ecf2; color:#1F3864; } .pm-b-blue { background:#2E75B6; color:#fff; }
+.pm-sep { height:1px; background:#e0e4ea; margin:22px 0 16px; }
+@media (max-width:700px) {
+  .pm-head { grid-template-columns:1fr; text-align:center; } .pm-head img { margin:0 auto; } .pm-idbox { justify-self:center; }
+  .pm-times { grid-template-columns:1fr 1fr; } .pm-bottom { grid-template-columns:1fr; } .pm-fotos { grid-template-columns:1fr; }
+}
+@media print {
+  body.print-pm > *:not(#pm-modal) { display:none !important; }
+  body.print-pm #pm-modal { display:block !important; position:static; background:none; overflow:visible; }
+  body.print-pm .pm-shell { margin:0; padding:0; max-width:none; }
+  body.print-pm .pm { border-radius:0; }
+  .pm-bar, .pm-actions, .pm-noprint, .pm-sig button, .pm-foto button { display:none !important; }
+  .pm-page { padding:0 3px; }
+  .pm { overflow:visible; }
+  .pm input, .pm select, .pm textarea { background:transparent !important; }
+  .pm-table { min-width:0; }
+  .pm-scroll { overflow:visible; }
+  .pm ::placeholder { color:transparent; }
+  .pm select { appearance:none; -webkit-appearance:none; }
+  #pm-modal, .pm-shell, .pm, .pm-page { width:100%; max-width:100%; }
+  .pm-sep { display:none; } .pm-anexo { page-break-before:always; }
+  .pm-foto { break-inside:avoid; }
+  .pm-anexo-box textarea { display:none; } .pm-anexo-print { display:block !important; white-space:pre-wrap; padding:6px; font-size:12px; line-height:1.5; }
+  .pm-bottom { grid-template-columns:1fr 1.15fr; }
+  @page { size:A4; margin:12mm; }
+}
+
+/* ── REPORTE: SOLAPAS, GUARDADOS E HISTORIAL ── */
+.pm-b-green { background:#27a06a; color:#fff; }
+.rs-tabs { display:flex; gap:3px; background:#1F3864; padding:0 1.5rem; flex-wrap:wrap; }
+.rs-tab { background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.78); border:none; border-radius:8px 8px 0 0; padding:9px 16px; font-family:Arial; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:7px; }
+.rs-tab.on { background:#fff; color:#1F3864; }
+.rs-count { background:#F0C040; color:#1F3864; border-radius:10px; font-size:11px; padding:1px 7px; min-width:20px; text-align:center; }
+.rs-panel { display:none; } .rs-panel.on { display:block; }
+.header-wrap { border-radius:10px 10px 0 0; }
+.rs-estado { margin-bottom:1rem; padding:8px 12px; border-radius:6px; font-size:12px; font-weight:700; display:none; }
+.rs-estado.borrador { display:block; background:#fff6db; color:#8a6200; border:1px solid #f0d27a; }
+.rs-estado.finalizado { display:block; background:#e6f4ec; color:#1e7a4c; border:1px solid #a8d8bd; }
+.rs-list-head { display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.rs-list-head h3 { font-size:15px; color:#1F3864; }
+.rs-filtros { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:8px; margin-bottom:12px; }
+.rs-filtros label { display:block; font-size:10px; font-weight:700; color:#5a6478; margin-bottom:3px; }
+.rs-filtros input, .rs-filtros select, .rs-list-head input { border:1px solid #c8d0dc; border-radius:6px; padding:7px 10px; font-size:13px; font-family:Arial; background:#fafbfc; width:100%; }
+.rs-rec { border:1px solid #d0d8e4; border-left:4px solid #F0C040; border-radius:8px; padding:10px 12px; margin-bottom:8px; display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; }
+.rs-rec.fin { border-left-color:#27a06a; }
+.rs-rec-tit { font-weight:700; font-size:13px; color:#1F3864; }
+.rs-rec-meta { font-size:11.5px; color:#5a6478; margin-top:3px; line-height:1.55; }
+.rs-rec-btns { display:flex; flex-wrap:wrap; gap:5px; justify-content:flex-end; max-width:360px; }
+.rs-rec-btns button { font-family:Arial; font-size:11.5px; font-weight:700; border:none; border-radius:6px; padding:6px 10px; cursor:pointer; background:#e8ecf2; color:#1F3864; }
+.rs-rec-btns button.p { background:#2E75B6; color:#fff; } .rs-rec-btns button.d { background:#fdecea; color:#c0392b; }
+.rs-tag { display:inline-block; font-size:10px; font-weight:700; padding:1px 8px; border-radius:10px; margin-left:6px; color:#fff; background:#e8813a; vertical-align:1px; }
+.rs-tag.prev { background:#27a06a; } .rs-tag.pred { background:#8e44ad; }
+.rs-tag.doc { background:#eef2f8; color:#1F3864; border:1px solid #c8d0dc; }
+.rs-vacio { text-align:center; color:#7a8499; padding:30px 10px; border:1px dashed #c8d0dc; border-radius:8px; }
+.rs-small { font-family:Arial; font-size:12px; font-weight:700; border:none; border-radius:6px; padding:7px 12px; cursor:pointer; background:#eef2f8; color:#1F3864; display:inline-flex; align-items:center; gap:5px; }
+.btn-finalizar { background:#27a06a; color:#fff; border:none; } .btn-finalizar:hover { background:#1f8a5a; }
+label.btn { border:1px solid #c8d0dc; }
+.rs-toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:#1F3864; color:#fff; padding:10px 18px; border-radius:8px; font-size:13px; font-weight:700; z-index:100001; opacity:0; transition:opacity .2s; pointer-events:none; }
+.rs-toast.on { opacity:1; }
+@media (max-width:700px) { .rs-filtros { grid-template-columns:1fr 1fr; } .rs-rec { grid-template-columns:1fr; } .rs-rec-btns { justify-content:flex-start; max-width:none; } .rs-tabs { padding:0 8px; } .rs-tab { padding:8px 10px; font-size:12px; } }
+@media print { .rs-tabs, .rs-estado, .rs-noprint, #rs-tab-guardados, #rs-tab-historial, .rs-toast { display:none !important; } #rs-tab-reporte { display:block !important; } }
+
+/* ── NUBE: LOGIN Y ESTADO DE SINCRONIZACIÓN ── */
+.rs-tabs { align-items:flex-end; }
+.rs-nube { margin-left:auto; display:flex; align-items:center; gap:8px; padding:6px 0; flex-wrap:wrap; justify-content:flex-end; }
+.rs-sync { display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:#fff; background:rgba(255,255,255,0.1); border:none; border-radius:14px; padding:4px 10px; cursor:pointer; font-family:Arial; }
+.rs-sync::before { content:''; width:8px; height:8px; border-radius:50%; background:#aaa; }
+.rs-sync.ok::before { background:#3ddc84; } .rs-sync.warn::before { background:#F0C040; } .rs-sync.off::before { background:#e57373; }
+.rs-sync.run::before { background:#64b5f6; animation:rsPulse 1s infinite; }
+@keyframes rsPulse { 50% { opacity:.3; } }
+.rs-user { font-size:11px; color:rgba(255,255,255,0.7); }
+.rs-salir { font-size:11px; font-weight:700; color:#F0C040; background:none; border:none; cursor:pointer; font-family:Arial; }
+.rs-tag.pend { background:#fff6db; color:#8a6200; border:1px solid #f0d27a; }
+#rs-login { display:none; position:fixed; inset:0; z-index:100003; background:#1F3864; align-items:center; justify-content:center; padding:20px; }
+.rs-login-card { background:#fff; border-radius:12px; width:100%; max-width:360px; padding:26px 24px; font-family:Arial,sans-serif; box-shadow:0 12px 40px rgba(0,0,0,0.35); }
+.rs-login-card img { height:44px; display:block; margin:0 auto 10px; }
+.rs-login-card h2 { text-align:center; font-size:17px; color:#1F3864; margin-bottom:4px; }
+.rs-login-card p { text-align:center; font-size:12px; color:#5a6478; margin-bottom:18px; }
+.rs-login-card label { display:block; font-size:11px; font-weight:700; color:#5a6478; margin:10px 0 4px; }
+.rs-login-card input { width:100%; border:1px solid #c8d0dc; border-radius:7px; padding:10px 12px; font-size:14px; font-family:Arial; }
+.rs-login-card button { width:100%; margin-top:18px; background:#2E75B6; color:#fff; border:none; border-radius:8px; padding:11px; font-size:14px; font-weight:700; cursor:pointer; font-family:Arial; }
+.rs-login-card button:disabled { opacity:.6; }
+#rs-login-err { color:#c0392b; font-size:12px; text-align:center; margin-top:10px; min-height:16px; }
+@media (max-width:700px) { .rs-nube { width:100%; justify-content:flex-start; order:-1; } }
+@media print { #rs-login { display:none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header-wrap">
+    <div class="header-logo-col">
+      <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAAfAHMDASIAAhEBAxEB/8QAHAAAAgIDAQEAAAAAAAAAAAAABgcFCAACAwQJ/8QARBAAAQMCBAMDBQwHCQAAAAAAAQIDBAUGAAcREhMhMQhBYSI3UaGzFBUzNkJScXJ0kbK0FjJ1gbHB0xgjVmKCk5Sj8P/EABoBAQACAwEAAAAAAAAAAAAAAAABBgIFBwP/xAAlEQACAgIBAwMFAAAAAAAAAAABAgADBBEhBUFREhNhMUKhscH/2gAMAwEAAhEDEQA/AH2ZStT5R+/EpbTT06oaNyuAWhu1B8o/QO/xwKGTzPPvxO2fS5dTliQhxxiM0fKdSdCT81P88cX6VjtZmVgIW5+gOvz21LZkqEpYk6hoEN1eI9GkpAdYXsLrf6u70pP8R+7A5RdzF0NRVOpcKFqSVJOoPI43uu4WoLApVJHDSAULdSOSdOqUnvPpP88QlmvbrmhJ16qV+E4svU76LeoY6LzYrL6m88jj515mvx6HFDueFIOh/ZVy8yBeNdJOgFRke0VjhWKNVqMqOKtTpEIyWg8xxU6cRB6KSe8Y7XoN1311J76jIH/YrElfd6VG726Q3PjRo6KVEEVkM6+UNBqpRPf5Ix0WaGHFnVWozuzle8GZLekMwnWUxw4sqLaVKQSkE92o6d2pxBdnLzyUT6r/ALJWCK0qLKp/ZpvGpvrYLdScaUyltwLKUoUhJ3adDr3Hn9+B3s5eeSifVf8AZKxEmXIxWrthVAuXFQaUFcmIrkhQ8VqCR+A4srinvaUqInZuVNIVqiGyzHHhojcfWo4CDFw+2tLY3AjejcnxHPQ+rFzXqiKtkK7UgrcZFvKWo/5uAdfXrisOZFEVRoNorUnaZlAaeVy+VvWT6lDDwyuqHu7swz2ydVQ4M2Mf9IUR6lDCIgcqvOPa/wC02PxDE32gvPFX/rteyRiEyq849r/tNj8QxN9oLzxV/wCu17JGESsGbnx8l/Zon5VrGYzNz4+S/s0T8q1jMRJn0Hs+mortZER2SlltI3rG7RawD0T/AO5YK7/rblDis0WmR1RUrb5PAaAJ+ak+n0nFbmc68umJCJDF5NNOoVuQtMKWCk+n4HDEjdpPJOuUEQrquhpL6CNS3TphCiPlJIZ1SfSMUbpWDeMWyhUNdjfcQeR472ljzbqveS0sGQdgRx8/Ma9vJh3XaKI78ExQz/doWhOiQofKQf44FLVbMS/o0IvtPlp1aOI2dUq0SemAm8e01lUqnIpNs3Y0xH2bVve98tBSn5iRweXicDFmZ55V025oU2ZeDKI7SlFZTT5hI1SR04Pjj2zMOxsnHUVlmQr6n1oHRH68zDHsQU2sXADA6XfMAb2JF3V4jr74SdP9xWCrOClWnTE22bYXG4simpcqCGJHFAd0TzPM7VHyuXh0wtbkvqzZtyVSbHuSKpmRNedbJjSQSlSyQdOFy5HEeLwtEdLhiD6I8n+li6SvR32ApX9n7MNG47Q/HITryBJTqfUMQOSFXptCzPpVVq8tuHCZS9xHl67U6tqA6eJGPNb+ZmV1IyVuWhLvmM/Wqw42tEdunzNjYQU6ArLIGugJPd0wt/0xtL/EUT/jyf6WET6CWvfNp3PNdhUCtxp8hpviuNthWqU66a8wO84plmBPFXvivVAnVMioPEc/k7iB6gMezIrN7L6zq1WqhVLoYaL1LWzG2Q5S97u4EA6NcunU4XzN42kt1BfuSKApYLivc8k6Anyj8F9OEQ1ue661c7VPaq8pl9NOZ4EYNspRsRyGh06/qjrhsZCVDiZQX/S1K+AjuPpHgthQPrRgHz1zQyQrdKo6LKrlNakRnViRw6RJj7kFIA1PBG7mPXiHyYzUy6oci4YNfu1qJBq9KXF4rcKU4UuE6A7Q1r0UrCJxy3kx4V+W7MlvIYjs1BhbrizolCQoaknuGJjPGdDqOa9cmQJTUqMtxsJdaUFIUQ2kHQjkeYIwsn7ss9h5bLd1QZKEHRLqI0oJWPSApkEfvGNW7vtFS0o/SSE2CdNyo8rRP06Mk/dhEW+bnx8l/Zon5VrGY2zflUWZf8163qqmrU73PEQ3MSy40l1SYzSXNEuJSoALCgNQOmuMxEmf/9k=" alt="BLAU" class="logo-img">
+      <div class="header-brand">
+        <span class="brand-name">BLAU CYT</span>
+        <span class="brand-sub">Servicio Mantenimiento VRU</span>
+      </div>
+    </div>
+    <div class="header-title-col">
+      <div class="header-title">Reporte de Servicio</div>
+      <div class="header-badges">
+        <span class="badge badge-orange" id="badge-tipo">Correctivo</span>
+        <span class="badge badge-blue">VRU</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="rs-tabs">
+    <button class="rs-tab on" data-tab="reporte">&#128221; Reporte</button>
+    <button class="rs-tab" data-tab="guardados">&#128190; Guardados <span class="rs-count" id="rs-n-borr">0</span></button>
+    <button class="rs-tab" data-tab="historial">&#128218; Historial <span class="rs-count" id="rs-n-fin">0</span></button>
+    <div class="rs-nube">
+      <button class="rs-sync off" id="rs-sync" onclick="sincronizarAhora()" title="Sincronizar ahora"><span id="rs-sync-txt">…</span></button>
+      <span class="rs-user" id="rs-user"></span>
+      <button class="rs-salir" id="rs-salir" onclick="cerrarSesion()" style="display:none;">Salir</button>
+    </div>
+  </div>
+
+  <div class="card rs-panel on" id="rs-tab-reporte">
+    <div class="rs-estado" id="rs-estado"></div>
+
+    <!-- TIPO DE MANTENIMIENTO -->
+    <div class="sec-title">&#9881; Tipo de mantenimiento</div>
+    <div class="fgrid g3">
+      <div class="field">
+        <label>Tipo</label>
+        <div class="toggle-group">
+          <input type="radio" name="tipo" id="t-prev" value="Preventivo">
+          <label for="t-prev">Preventivo</label>
+          <input type="radio" name="tipo" id="t-corr" value="Correctivo" checked>
+          <label for="t-corr">Correctivo</label>
+          <input type="radio" name="tipo" id="t-pred" value="Predictivo">
+          <label for="t-pred">Predictivo</label>
+        </div>
+      </div>
+      <div class="field required">
+        <label>Día</label>
+        <select id="dia">
+          <option value="">— Seleccionar —</option>
+          <option>Lunes</option><option>Martes</option><option>Miércoles</option>
+          <option>Jueves</option><option>Viernes</option><option>Sábado</option><option>Domingo</option>
+        </select>
+      </div>
+      <div class="field required">
+        <label>Fecha</label>
+        <input type="date" id="fecha">
+      </div>
+    </div>
+
+    <div class="fgrid g4" style="margin-top:10px;">
+      <div class="field required">
+        <label>Hora de inicio</label>
+        <input type="time" id="hora-inicio">
+      </div>
+      <div class="field required">
+        <label>Hora de finalización</label>
+        <input type="time" id="hora-fin">
+      </div>
+      <div class="field">
+        <label>Horas unidad (Hs)</label>
+        <input type="text" id="horas-unidad" placeholder="ej. 20982">
+      </div>
+      <div class="field">
+        <label>Arranques</label>
+        <input type="text" id="arranques" placeholder="ej. 1513">
+      </div>
+    </div>
+
+    <!-- DATOS CLIENTE / EQUIPO -->
+    <div class="sec-title">&#127970; Datos del cliente / equipamiento</div>
+    <div class="fgrid g3">
+      <div class="field required"><label>Empresa</label><input type="text" id="empresa" placeholder="ej. Phoenix"></div>
+      <div class="field required"><label>Yacimiento</label><input type="text" id="yacimiento" placeholder="ej. Mata Mora"></div>
+      <div class="field"><label>Instalación</label><input type="text" id="instalacion" placeholder="ej. EPF"></div>
+    </div>
+    <div class="fgrid g3" style="margin-top:10px;">
+      <div class="field required"><label>Marca</label><input type="text" id="marca" placeholder="ej. Jefferson"></div>
+      <div class="field required"><label>Modelo</label><input type="text" id="modelo" placeholder="ej. 2054-D7"></div>
+      <div class="field required"><label>Tipo de equipamiento / N/S</label><input type="text" id="equipo" placeholder="ej. VRU K604 N/S: 2261"></div>
+    </div>
+
+    <!-- TAREAS REALIZADAS -->
+    <div class="sec-title">&#10003; Tareas realizadas</div>
+    <div class="task-rows" id="task-rows">
+      <div class="task-row">
+        <span class="task-num">1</span>
+        <textarea placeholder="Descripción de la tarea realizada..."></textarea>
+        <button class="btn-remove" onclick="removeTask(this)" title="Eliminar">&#215;</button>
+      </div>
+    </div>
+    <button class="btn-add" onclick="addTask()">&#43; Agregar tarea</button>
+
+    <!-- TÉCNICO Y VEHÍCULO -->
+    <div class="divider"></div>
+    <div class="fgrid g2">
+      <div class="field required"><label>Técnico responsable</label><input type="text" id="tecnico" placeholder="Nombre y apellido"></div>
+      <div class="field"><label>Vehículo</label><input type="text" id="vehiculo" placeholder="Patente / descripción"></div>
+    </div>
+
+    <!-- REPUESTOS E INSUMOS -->
+    <div class="sec-title">&#128230; Repuestos e insumos utilizados</div>
+    <table class="rep-table" id="rep-table">
+      <thead>
+        <tr>
+          <th style="width:50%">Descripción</th>
+          <th style="width:20%">Código / N°</th>
+          <th style="width:15%">Cantidad</th>
+          <th style="width:15%">&#128465;</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input type="text" placeholder="Descripción del repuesto..."></td>
+          <td><input type="text" placeholder="Código"></td>
+          <td><input type="number" min="1" placeholder="1"></td>
+          <td style="text-align:center;"><button class="btn-remove" onclick="removeRepuesto(this)">&#215;</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <button class="btn-add" onclick="addRepuesto()">&#43; Agregar repuesto</button>
+
+    <!-- RECOMENDACIONES -->
+    <div class="sec-title">&#9888; Tareas futuras y recomendaciones</div>
+    <div class="rec-box">
+      <textarea id="recomendaciones" placeholder="Describa las tareas futuras recomendadas y observaciones relevantes..."></textarea>
+    </div>
+
+    <!-- FIRMAS -->
+    <div class="sec-title">&#9997; Firmas</div>
+    <div class="firma-grid">
+      <div class="firma-box">
+        <div class="firma-role">Firma cliente</div>
+        <div class="firma-canvas-wrap">
+          <canvas class="firma-canvas" id="canvas-cliente" width="340" height="80"></canvas>
+        </div>
+        <button class="btn-clear-sig" onclick="clearCanvas('canvas-cliente')">&#8635; Limpiar firma</button>
+        <div class="field" style="margin-top:8px;">
+          <label>Nombre y aclaración</label>
+          <input type="text" id="firma-cliente-nombre" placeholder="Nombre del representante">
+        </div>
+      </div>
+      <div class="firma-box">
+        <div class="firma-role">Firma técnico</div>
+        <div class="firma-canvas-wrap">
+          <canvas class="firma-canvas" id="canvas-tecnico" width="340" height="80"></canvas>
+        </div>
+        <button class="btn-clear-sig" onclick="clearCanvas('canvas-tecnico')">&#8635; Limpiar firma</button>
+        <div class="field" style="margin-top:8px;">
+          <label>Nombre del técnico</label>
+          <input type="text" id="firma-tecnico-nombre" placeholder="Nombre y apellido">
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ATS BUTTON -->
+    <button class="btn btn-ats rs-noprint" onclick="abrirATS()" style="margin-bottom:1rem; width:100%; padding:12px; font-size:15px; background:#c0392b; color:#fff; border:none; border-radius:8px; cursor:pointer; font-family:Arial; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px;">
+      &#9888;&#65039; ATS — Asignación Segura de Trabajo &nbsp;<span style="font-size:12px; background:rgba(255,255,255,0.25); padding:3px 10px; border-radius:12px;">Abrir y completar</span>
+    </button>
+
+    <button class="btn rs-noprint" onclick="abrirParte()" style="margin-bottom:1rem; width:100%; padding:12px; font-size:15px; background:#FFC000; color:#1F3864; border:none; border-radius:8px; cursor:pointer; font-family:Arial; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px;">
+      &#128295; Parte de Servicio de Mantenimiento &nbsp;<span style="font-size:12px; background:rgba(31,56,100,0.15); padding:3px 10px; border-radius:12px;">Abrir y completar</span>
+    </button>
+
+    <!-- ACTIONS -->
+    <div class="actions">
+      <button class="btn btn-danger" onclick="nuevoReporte()">&#10133; Nuevo reporte</button>
+      <label class="btn btn-secondary">&#128194; Importar archivo<input type="file" accept=".json" id="rs-importar" style="display:none;"></label>
+      <button class="btn btn-secondary" onclick="exportarReporte()">&#11015; Exportar archivo</button>
+      <button class="btn btn-primary" onclick="guardarReporte()">&#128190; Guardar</button>
+      <button class="btn btn-finalizar" onclick="finalizarReporte()">&#10004; Finalizar</button>
+      <button class="btn btn-print" onclick="imprimirReporte()">&#128438; Imprimir / PDF</button>
+    </div>
+
+
+  </div>
+
+  <!-- SOLAPA GUARDADOS -->
+  <div class="card rs-panel" id="rs-tab-guardados">
+    <div class="rs-list-head"><h3>Reportes guardados (en curso)</h3>
+      <input id="rs-buscar-borr" placeholder="Buscar por cliente, equipo, técnico..." style="max-width:280px;">
+    </div>
+    <div id="rs-lista-borr"></div>
+  </div>
+
+  <!-- SOLAPA HISTORIAL -->
+  <div class="card rs-panel" id="rs-tab-historial">
+    <div class="rs-list-head"><h3>Historial de servicios finalizados</h3>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <button class="rs-small" onclick="exportarCSV()">&#128196; Exportar CSV</button>
+        <button class="rs-small" onclick="exportarRespaldo()">&#11015; Respaldo completo</button>
+        <label class="rs-small">&#11014; Restaurar respaldo<input type="file" accept=".json" id="rs-restaurar" style="display:none;"></label>
+      </div>
+    </div>
+    <div class="rs-filtros">
+      <div><label>Buscar</label><input id="rs-f-texto" placeholder="Cliente, yacimiento, equipo, técnico, N° parte..."></div>
+      <div><label>Tipo</label><select id="rs-f-tipo"><option value="">Todos</option><option>Preventivo</option><option>Correctivo</option><option>Predictivo</option></select></div>
+      <div><label>Desde</label><input type="date" id="rs-f-desde"></div>
+      <div><label>Hasta</label><input type="date" id="rs-f-hasta"></div>
+    </div>
+    <div id="rs-lista-fin"></div>
+  </div>
+</div>
+
+<script>
+// ── TIPO BADGE ──
+document.querySelectorAll('input[name="tipo"]').forEach(r => {
+  r.addEventListener('change', () => {
+    document.getElementById('badge-tipo').textContent = r.value;
+    document.getElementById('badge-tipo').style.background =
+      r.value === 'Preventivo' ? '#27a06a' : r.value === 'Predictivo' ? '#8e44ad' : '#e8813a';
+  });
+});
+
+// ── SET TODAY ──
+const today = new Date();
+document.getElementById('fecha').value = today.toISOString().split('T')[0];
+const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+document.getElementById('dia').value = dias[today.getDay()];
+
+// ── TASKS ──
+let taskCount = 1;
+function addTask() {
+  taskCount++;
+  const row = document.createElement('div');
+  row.className = 'task-row';
+  row.innerHTML = `<span class="task-num">${taskCount}</span><textarea placeholder="Descripción de la tarea realizada..."></textarea><button class="btn-remove" onclick="removeTask(this)">&#215;</button>`;
+  document.getElementById('task-rows').appendChild(row);
+  renumberTasks();
+}
+function removeTask(btn) {
+  const rows = document.querySelectorAll('.task-row');
+  if (rows.length > 1) { btn.closest('.task-row').remove(); renumberTasks(); }
+}
+function renumberTasks() {
+  document.querySelectorAll('.task-num').forEach((n, i) => n.textContent = i + 1);
+  taskCount = document.querySelectorAll('.task-row').length;
+}
+
+// ── REPUESTOS ──
+function addRepuesto() {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td><input type="text" placeholder="Descripción del repuesto..."></td><td><input type="text" placeholder="Código"></td><td><input type="number" min="1" placeholder="1"></td><td style="text-align:center;"><button class="btn-remove" onclick="removeRepuesto(this)">&#215;</button></td>`;
+  document.querySelector('#rep-table tbody').appendChild(tr);
+}
+function removeRepuesto(btn) {
+  const rows = document.querySelectorAll('#rep-table tbody tr');
+  if (rows.length > 1) btn.closest('tr').remove();
+}
+
+// ── SIGNATURE CANVAS ──
+function initCanvas(id) {
+  const canvas = document.getElementById(id);
+  const ctx = canvas.getContext('2d');
+  let drawing = false;
+  ctx.strokeStyle = '#1F3864';
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  function getPos(e) {
+    const r = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / r.width;
+    const scaleY = canvas.height / r.height;
+    const src = e.touches ? e.touches[0] : e;
+    return { x: (src.clientX - r.left) * scaleX, y: (src.clientY - r.top) * scaleY };
+  }
+  canvas.addEventListener('mousedown', e => { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+  canvas.addEventListener('mousemove', e => { if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+  canvas.addEventListener('mouseup', () => drawing = false);
+  canvas.addEventListener('mouseleave', () => drawing = false);
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }, {passive:false});
+  canvas.addEventListener('touchmove', e => { e.preventDefault(); if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }, {passive:false});
+  canvas.addEventListener('touchend', () => drawing = false);
+}
+function clearCanvas(id) {
+  const c = document.getElementById(id);
+  c.getContext('2d').clearRect(0, 0, c.width, c.height);
+}
+initCanvas('canvas-cliente');
+initCanvas('canvas-tecnico');
+
+// ── SYNC TECNICO NAME TO FIRMA ──
+document.getElementById('tecnico').addEventListener('input', function() {
+  document.getElementById('firma-tecnico-nombre').value = this.value;
+});
+
+// ── GUARDAR BORRADOR ──
+function guardarBorrador() {
+  const data = {
+    tipo: document.querySelector('input[name="tipo"]:checked')?.value,
+    dia: document.getElementById('dia').value,
+    fecha: document.getElementById('fecha').value,
+    horaInicio: document.getElementById('hora-inicio').value,
+    horaFin: document.getElementById('hora-fin').value,
+    horasUnidad: document.getElementById('horas-unidad').value,
+    arranques: document.getElementById('arranques').value,
+    empresa: document.getElementById('empresa').value,
+    yacimiento: document.getElementById('yacimiento').value,
+    instalacion: document.getElementById('instalacion').value,
+    marca: document.getElementById('marca').value,
+    modelo: document.getElementById('modelo').value,
+    equipo: document.getElementById('equipo').value,
+    tecnico: document.getElementById('tecnico').value,
+    vehiculo: document.getElementById('vehiculo').value,
+    tareas: [...document.querySelectorAll('.task-row textarea')].map(t => t.value),
+    repuestos: [...document.querySelectorAll('#rep-table tbody tr')].map(tr => {
+      const inputs = tr.querySelectorAll('input');
+      return { desc: inputs[0].value, cod: inputs[1].value, cant: inputs[2].value };
+    }),
+    recomendaciones: document.getElementById('recomendaciones').value,
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `borrador_VRU_${data.fecha || 'sin-fecha'}.json`;
+  a.click();
+}
+
+// ── RESET ──
+async function resetForm() {
+  if (!(await pregunta('¿Limpiar todo el formulario?'))) return;
+  document.querySelectorAll('input:not([type=radio]), textarea, select').forEach(el => el.value = '');
+  document.getElementById('t-corr').checked = true;
+  document.getElementById('badge-tipo').textContent = 'Correctivo';
+  document.getElementById('badge-tipo').style.background = '#e8813a';
+  // Reset tasks to 1
+  const rows = document.getElementById('task-rows');
+  rows.innerHTML = `<div class="task-row"><span class="task-num">1</span><textarea placeholder="Descripción de la tarea realizada..."></textarea><button class="btn-remove" onclick="removeTask(this)">&#215;</button></div>`;
+  taskCount = 1;
+  // Reset repuestos to 1
+  document.querySelector('#rep-table tbody').innerHTML = `<tr><td><input type="text" placeholder="Descripción del repuesto..."></td><td><input type="text" placeholder="Código"></td><td><input type="number" min="1" placeholder="1"></td><td style="text-align:center;"><button class="btn-remove" onclick="removeRepuesto(this)">&#215;</button></td></tr>`;
+  clearCanvas('canvas-cliente');
+  clearCanvas('canvas-tecnico');
+  today = new Date();
+  document.getElementById('fecha').value = today.toISOString().split('T')[0];
+  document.getElementById('dia').value = dias[today.getDay()];
+}
+</script>
+
+<!-- ATS MODAL -->
+<div id="ats-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:99999; overflow-y:auto;">
+<div style="max-width:1020px; margin:16px auto; padding:0 12px 40px;">
+<div id="ats-form" style="background:#fff; border-radius:12px; overflow:hidden; font-family:Arial,sans-serif; font-size:12px;">
+
+  <div style="background:#1F3864; padding:12px 20px; display:flex; align-items:center; justify-content:space-between;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAAfAHMDASIAAhEBAxEB/8QAHAAAAgIDAQEAAAAAAAAAAAAABgcFCAACAwQJ/8QARBAAAQMCBAMDBQwHCQAAAAAAAQIDBAUGAAcREhMhMQhBYSI3UaGzFBUzNkJScXJ0kbK0FjJ1gbHB0xgjVmKCk5Sj8P/EABoBAQACAwEAAAAAAAAAAAAAAAABBgIFBwP/xAAlEQACAgIBAwMFAAAAAAAAAAABAgADBBEhBUFREhNhMUKhscH/2gAMAwEAAhEDEQA/AH2ZStT5R+/EpbTT06oaNyuAWhu1B8o/QO/xwKGTzPPvxO2fS5dTliQhxxiM0fKdSdCT81P88cX6VjtZmVgIW5+gOvz21LZkqEpYk6hoEN1eI9GkpAdYXsLrf6u70pP8R+7A5RdzF0NRVOpcKFqSVJOoPI43uu4WoLApVJHDSAULdSOSdOqUnvPpP88QlmvbrmhJ16qV+E4svU76LeoY6LzYrL6m88jj515mvx6HFDueFIOh/ZVy8yBeNdJOgFRke0VjhWKNVqMqOKtTpEIyWg8xxU6cRB6KSe8Y7XoN1311J76jIH/YrElfd6VG726Q3PjRo6KVEEVkM6+UNBqpRPf5Ix0WaGHFnVWozuzle8GZLekMwnWUxw4sqLaVKQSkE92o6d2pxBdnLzyUT6r/ALJWCK0qLKp/ZpvGpvrYLdScaUyltwLKUoUhJ3adDr3Hn9+B3s5eeSifVf8AZKxEmXIxWrthVAuXFQaUFcmIrkhQ8VqCR+A4srinvaUqInZuVNIVqiGyzHHhojcfWo4CDFw+2tLY3AjejcnxHPQ+rFzXqiKtkK7UgrcZFvKWo/5uAdfXrisOZFEVRoNorUnaZlAaeVy+VvWT6lDDwyuqHu7swz2ydVQ4M2Mf9IUR6lDCIgcqvOPa/wC02PxDE32gvPFX/rteyRiEyq849r/tNj8QxN9oLzxV/wCu17JGESsGbnx8l/Zon5VrGYzNz4+S/s0T8q1jMRJn0Hs+mortZER2SlltI3rG7RawD0T/AO5YK7/rblDis0WmR1RUrb5PAaAJ+ak+n0nFbmc68umJCJDF5NNOoVuQtMKWCk+n4HDEjdpPJOuUEQrquhpL6CNS3TphCiPlJIZ1SfSMUbpWDeMWyhUNdjfcQeR432ljzbqveS0sGQdgRx8/Ma9vJh3XaKI78ExQz/doWhOiQofKQf44FLVbMS/o0IvtPlp1aOI2dUq0SemAm8e01lUqnIpNs3Y0xH2bVve98tBSn5iRweXicDFmZ55V025oU2ZeDKI7SlFZTT5hI1SR04Pjj2zMOxsnHUVlmQr6n1oHRH68zDHsQU2sXADA6XfMAb2JF3V4jr74SdP9xWCrOClWnTE22bYXG4simpcqCGJHFAd0TzPM7VHyuXh0wtbkvqzZtyVSbHuSKpmRNedbJjSQSlSyQdOFy5HEeLwtEdLhiD6I8n+li6SvR32ApX9n7MNG47Q/HITryBJTqfUMQOSFXptCzPpVVq8tuHCZS9xHl67U6tqA6eJGPNb+ZmV1IyVuWhLvmM/Wqw42tEdunzNjYQU6ArLIGugJPd0wt/0xtL/EUT/jyf6WET6CWvfNp3PNdhUCtxp8hpviuNthWqU66a8wO84plmBPFXvivVAnVMioPEc/k7iB6gMezIrN7L6zq1WqhVLoYaL1LWzG2Q5S97u4EA6NcunU4XzN42kt1BfuSKApYLivc8k6Anyj8F9OEQ1ue661c7VPaq8pl9NOZ4EYNspRsRyGh06/qjrhsZCVDiZQX/S1K+AjuPpHgthQPrRgHz1zQyQrdKo6LKrlNakRnViRw6RJj7kFIA1PBG7mPXiHyYzUy6oci4YNfu1qJBq9KXF4rcKU4UuE6A7Q1r0UrCJxy3kx4V+W7MlvIYjs1BhbrizolCQoaknuGJjPGdDqOa9cmQJTUqMtxsJdaUFIUQ2kHQjkeYIwsn7ss9h5bLd1QZKEHRLqI0oJWPSApkEfvGNW7vtFS0o/SSE2CdNyo8rRP06Mk/dhEW+bnx8l/Zon5VrGY2zflUWZf8163qqmrU73PEQ3MSy40l1SYzSXNEuJSoALCgNQOmuMxEmf/9k=" style="height:36px; background:#fff; border-radius:4px; padding:3px 7px;">
+      <div>
+        <div style="color:#F0C040; font-size:16px; font-weight:700;">BLAU CYT</div>
+        <div style="color:rgba(255,255,255,0.7); font-size:10px;">RG-B-12-01 | Rev.02 | 16-01-2024</div>
+      </div>
+    </div>
+    <div style="color:#fff; font-size:15px; font-weight:700; letter-spacing:0.5px;">ASIGNACIÓN SEGURA DE TRABAJO (ATS)</div>
+    <button onclick="cerrarATS()" style="background:rgba(255,255,255,0.15); border:none; color:#fff; font-size:18px; border-radius:8px; padding:4px 12px; cursor:pointer; font-family:Arial;">✕</button>
+  </div>
+
+  <div style="padding:14px 16px;">
+
+  <!-- PLANIFICACIÓN + GESTIÓN VEHICULAR -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:10px;">
+    <div style="border:1px solid #c0c0c0; border-radius:6px; overflow:hidden;">
+      <div style="background:#BDD7EE; padding:5px 10px; font-weight:700; font-size:11px; text-align:center; letter-spacing:0.5px;">PLANIFICACIÓN</div>
+      <div style="padding:8px 10px; display:flex; flex-direction:column; gap:7px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div><div style="font-size:10px;font-weight:700;color:#5a6478;margin-bottom:2px;">FECHA</div><input type="date" id="ats-fecha" style="width:100%;border:none;border-bottom:1px solid #aaa;font-size:12px;padding:3px 2px;font-family:Arial;background:transparent;"></div>
+          <div><div style="font-size:10px;font-weight:700;color:#5a6478;margin-bottom:2px;">N° OT</div><input type="text" id="ats-ot" style="width:100%;border:none;border-bottom:1px solid #aaa;font-size:12px;padding:3px 2px;font-family:Arial;background:transparent;"></div>
+        </div>
+        <div><div style="font-size:10px;font-weight:700;color:#5a6478;margin-bottom:2px;">DESCRIPCIÓN DEL TRABAJO (especifique tarea/s a realizar)</div><textarea id="ats-desc" rows="3" style="width:100%;border:1px solid #ccc;border-radius:4px;font-size:12px;padding:5px 7px;font-family:Arial;resize:vertical;"></textarea></div>
+        <div><div style="font-size:10px;font-weight:700;color:#5a6478;margin-bottom:2px;">SITIO DE TAREA</div><input type="text" id="ats-sitio" style="width:100%;border:none;border-bottom:1px solid #aaa;font-size:12px;padding:3px 2px;font-family:Arial;background:transparent;"></div>
+      </div>
+    </div>
+    <div style="border:1px solid #c0c0c0; border-radius:6px; overflow:hidden;">
+      <div style="background:#BDD7EE; padding:5px 10px; font-weight:700; font-size:11px; text-align:center; letter-spacing:0.5px;">GESTIÓN VEHÍCULAR</div>
+      <div style="padding:8px 10px; display:flex; flex-direction:column; gap:7px;">
+        <div><div style="font-size:10px;font-weight:700;color:#5a6478;margin-bottom:2px;">INTERNO Y/O DOMINIO</div><input type="text" id="ats-dominio" style="width:100%;border:none;border-bottom:1px solid #aaa;font-size:12px;padding:3px 2px;font-family:Arial;background:transparent;"></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div><div style="font-size:10px;font-weight:700;color:#5a6478;margin-bottom:2px;">NIVEL DE FLUIDOS</div>
+            <select style="width:100%;border:none;border-bottom:1px solid #aaa;font-size:12px;padding:3px 0;font-family:Arial;background:transparent;"><option value="">—</option><option>OK</option><option>Bajo</option><option>N/A</option></select></div>
+          <div><div style="font-size:10px;font-weight:700;color:#5a6478;margin-bottom:2px;">ESTADO DE LUCES</div>
+            <select style="width:100%;border:none;border-bottom:1px solid #aaa;font-size:12px;padding:3px 0;font-family:Arial;background:transparent;"><option value="">—</option><option>OK</option><option>Falla</option><option>N/A</option></select></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div><div style="font-size:10px;font-weight:700;color:#5a6478;margin-bottom:2px;">ESTADO NEUMÁTICOS/AUXILIO</div>
+            <select style="width:100%;border:none;border-bottom:1px solid #aaa;font-size:12px;padding:3px 0;font-family:Arial;background:transparent;"><option value="">—</option><option>OK</option><option>Falla</option><option>N/A</option></select></div>
+          <div><div style="font-size:10px;font-weight:700;color:#5a6478;margin-bottom:2px;">LLAVE RUEDA/CRIQUET</div>
+            <select style="width:100%;border:none;border-bottom:1px solid #aaa;font-size:12px;padding:3px 0;font-family:Arial;background:transparent;"><option value="">—</option><option>OK</option><option>Falta</option><option>N/A</option></select></div>
+        </div>
+        <div><div style="font-size:10px;font-weight:700;color:#5a6478;margin-bottom:4px;">EQUIPO RADIOS</div>
+          <div style="display:flex; gap:14px;">
+            <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;"><input type="radio" name="ats-radios" value="SI"> SI</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;"><input type="radio" name="ats-radios" value="NO"> NO</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;"><input type="radio" name="ats-radios" value="CELULAR"> CELULAR</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PELIGROS -->
+  <div style="border:1px solid #c0c0c0; border-radius:6px; overflow:hidden; margin-bottom:10px;">
+    <div style="background:#F2C94C; padding:5px 10px; font-weight:700; font-size:11px; text-align:center;">MARQUE Y DISCUTA PELIGROS PRESENTES EN LA TAREA O ENTORNO</div>
+    <div style="padding:10px 12px; display:grid; grid-template-columns:repeat(3,1fr); gap:7px;"><label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;padding:7px 8px;border:1px solid #e0e0e0;border-radius:6px;background:#fafafa;"><input type="checkbox" name="ats-peligro" value="PRESIÓN" style="margin-top:2px;flex-shrink:0;"><div><div style="font-weight:700;font-size:11px;color:#1F3864;">⚡ PRESIÓN</div><div style="font-size:10px;color:#666;line-height:1.4;">Tuberías a presión, cilindro de gas comprimido, equipos neumáticos e hidráulicos.</div></div></label><label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;padding:7px 8px;border:1px solid #e0e0e0;border-radius:6px;background:#fafafa;"><input type="checkbox" name="ats-peligro" value="TEMPERATURA EXTREMA" style="margin-top:2px;flex-shrink:0;"><div><div style="font-weight:700;font-size:11px;color:#1F3864;">🔥 TEMPERATURA EXTREMA</div><div style="font-size:10px;color:#666;line-height:1.4;">Llama abierta, superficies calientes o frías, líquidos o gases, condición climática extrema.</div></div></label><label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;padding:7px 8px;border:1px solid #e0e0e0;border-radius:6px;background:#fafafa;"><input type="checkbox" name="ats-peligro" value="MOVIMIENTO" style="margin-top:2px;flex-shrink:0;"><div><div style="font-weight:700;font-size:11px;color:#1F3864;">💨 MOVIMIENTO</div><div style="font-size:10px;color:#666;line-height:1.4;">De equipos, vehículos, fluidos, viento, postura del cuerpo (caminar, levantar, estirar, flexionar).</div></div></label><label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;padding:7px 8px;border:1px solid #e0e0e0;border-radius:6px;background:#fafafa;"><input type="checkbox" name="ats-peligro" value="QUÍMICA" style="margin-top:2px;flex-shrink:0;"><div><div style="font-weight:700;font-size:11px;color:#1F3864;">☣️ QUÍMICA</div><div style="font-size:10px;color:#666;line-height:1.4;">Sólido, líquido o gases tóxicos, inflamables, reactivos, corrosivos, combustibles.</div></div></label><label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;padding:7px 8px;border:1px solid #e0e0e0;border-radius:6px;background:#fafafa;"><input type="checkbox" name="ats-peligro" value="RUIDO Y VIBRACIONES" style="margin-top:2px;flex-shrink:0;"><div><div style="font-weight:700;font-size:11px;color:#1F3864;">🔊 RUIDO Y VIBRACIONES</div><div style="font-size:10px;color:#666;line-height:1.4;">Ruidos de impactos, vibración, alivio de presión, ruido de equipos. RADIACIÓN: rayos X, rayos solares.</div></div></label><label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;padding:7px 8px;border:1px solid #e0e0e0;border-radius:6px;background:#fafafa;"><input type="checkbox" name="ats-peligro" value="GRAVEDAD" style="margin-top:2px;flex-shrink:0;"><div><div style="font-weight:700;font-size:11px;color:#1F3864;">⚠️ GRAVEDAD</div><div style="font-size:10px;color:#666;line-height:1.4;">Caída o proyección de objetos, partículas, estructuras.</div></div></label><label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;padding:7px 8px;border:1px solid #e0e0e0;border-radius:6px;background:#fafafa;"><input type="checkbox" name="ats-peligro" value="ELÉCTRICA" style="margin-top:2px;flex-shrink:0;"><div><div style="font-weight:700;font-size:11px;color:#1F3864;">⚡ ELÉCTRICA</div><div style="font-size:10px;color:#666;line-height:1.4;">Líneas de transmisión, cargas estáticas, relámpagos, equipos energizados, batería.</div></div></label><label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;padding:7px 8px;border:1px solid #e0e0e0;border-radius:6px;background:#fafafa;"><input type="checkbox" name="ats-peligro" value="MECÁNICA" style="margin-top:2px;flex-shrink:0;"><div><div style="font-weight:700;font-size:11px;color:#1F3864;">⚙️ MECÁNICA</div><div style="font-size:10px;color:#666;line-height:1.4;">Equipos rotativos y alternativos, resortes, cintas transportadoras, correas, motores.</div></div></label><label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;padding:7px 8px;border:1px solid #e0e0e0;border-radius:6px;background:#fafafa;"><input type="checkbox" name="ats-peligro" value="BIOLÓGICO" style="margin-top:2px;flex-shrink:0;"><div><div style="font-weight:700;font-size:11px;color:#1F3864;">🌱 BIOLÓGICO</div><div style="font-size:10px;color:#666;line-height:1.4;">Alimentos, flora, fauna, medicamentos.</div></div></label><label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;padding:7px 8px;border:1px solid #e0e0e0;border-radius:6px;background:#fafafa;"><input type="checkbox" name="ats-peligro" value="ILUMINACIÓN" style="margin-top:2px;flex-shrink:0;"><div><div style="font-weight:700;font-size:11px;color:#1F3864;">💡 ILUMINACIÓN</div><div style="font-size:10px;color:#666;line-height:1.4;">Falta o exceso de luz.</div></div></label><label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;padding:7px 8px;border:1px solid #e0e0e0;border-radius:6px;background:#fafafa;"><input type="checkbox" name="ats-peligro" value="APRISIONAMIENTO" style="margin-top:2px;flex-shrink:0;"><div><div style="font-weight:700;font-size:11px;color:#1F3864;">🏋️ APRISIONAMIENTO</div><div style="font-size:10px;color:#666;line-height:1.4;">Caída o proyección entre partes móviles.</div></div></label><label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;padding:7px 8px;border:1px solid #e0e0e0;border-radius:6px;background:#fafafa;"><input type="checkbox" name="ats-peligro" value="PROYECCIÓN PARTÍCULAS" style="margin-top:2px;flex-shrink:0;"><div><div style="font-weight:700;font-size:11px;color:#1F3864;">🔁 PROYECCIÓN PARTÍCULAS</div><div style="font-size:10px;color:#666;line-height:1.4;">Partículas proyectadas durante la tarea.</div></div></label>
+    </div>
+  </div>
+
+  <!-- RIESGOS + MEDIDAS -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:10px;">
+    <div style="border:1px solid #c0c0c0; border-radius:6px; overflow:hidden;">
+      <div style="background:#BDD7EE; padding:5px 10px; font-weight:700; font-size:11px; text-align:center;">IDENTIFICACIÓN DE RIESGOS / ASPECTOS AMBIENTALES</div>
+      <div style="padding:8px 10px; display:grid; grid-template-columns:1fr 1fr; gap:2px;"><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="a"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">a</span> Aprisionamiento</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="b"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">b</span> Golpe, cortes</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="c"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">c</span> Caída a mismo nivel</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="d"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">d</span> Caída en altura</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="e"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">e</span> Caída a distinto nivel</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="f"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">f</span> Choque eléctrico</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="g"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">g</span> Quemaduras</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="h"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">h</span> Expuesto a presión/proyección</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="i"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">i</span> Limitaciones de acceso/egresos</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="j"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">j</span> Resbalón/Tropiezo</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="k"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">k</span> Contacto con producto químico</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="l"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">l</span> Posiciones incómodas/mov. repetitivos</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="m"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">m</span> Desplome de carga/aplastamiento</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="n"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">n</span> Posible presencia de gases</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="ñ"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">ñ</span> Proyección partículas</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="o"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">o</span> Alto nivel de Ruido (85dba+)</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="p"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">p</span> Sobreesfuerzo</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="q"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">q</span> Corte, heridas en mano</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="r"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">r</span> Vibraciones</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="s"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">s</span> Incendio/Explosión</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="t"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">t</span> Derrame de fluidos</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="u"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">u</span> Proyecciones de partículas</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="v"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">v</span> Atropellos / choque contra vehículos</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-riesgo" value="w"><span style="background:#1F3864;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">w</span> Tareas simultáneas</label>
+      </div>
+    </div>
+    <div style="border:1px solid #c0c0c0; border-radius:6px; overflow:hidden;">
+      <div style="background:#BDD7EE; padding:5px 10px; font-weight:700; font-size:11px; text-align:center;">MEDIDAS PREVENTIVAS A IMPLEMENTAR</div>
+      <div style="padding:8px 10px; display:grid; grid-template-columns:1fr; gap:2px;"><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="a"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">a</span> Verificar protecciones de partes rotativas, asegurar movimiento imprevisto.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="b"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">b</span> Inspección visual de herramientas y equipos.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="c"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">c</span> Verificar terreno a transitar, verificar orden y limpieza.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="d"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">d</span> Chequeo de arnes, elementos de sujeción y punto de anclaje.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="e"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">e</span> Verificar estado de plataforma, escaleras, barandas.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="f"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">f</span> Verificar presencia de puesta a tierra, herramientas eléctricas.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="g"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">g</span> Uso de EPP adecuado. Identificar puntos calientes para no tener exposición directa.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="h"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">h</span> Salir de la línea de fuego. Bloqueo y etiquetado de energías. Verificar energía residual.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="i"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">i</span> Definir salidas en caso de emergencias.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="j"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">j</span> Orden y limpieza del sitio.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="k"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">k</span> Uso de EPP. Verificar ausencia de presión. Uso de guantes de nitrilo.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="l"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">l</span> Organizar descansos si la postura es necesario sostenerla por más de dos horas.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="m"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">m</span> Chequeo de elemento de izaje. No circular debajo de la carga. Señalizar radio de izaje.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="n"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">n</span> Realizar medición de atmósfera.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="ñ"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">ñ</span> Usar protección facial, uso de ropa de trabajo.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="o"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">o</span> Uso de protección auditiva (endoaural, copas).</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="p"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">p</span> Adoptar posición correcta de trabajo.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="q"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">q</span> Evitar distracciones, uso de guantes adecuados para la tarea.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="r"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">r</span> Verificar estado de sistema neumáticos y amortiguadores del móvil.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="s"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">s</span> Disponer de matafuegos en la zona de trabajo, retirar materiales combustibles.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="t"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">t</span> Contener derrames de fluido en bidón, bandeja de contención, cerrar válvulas.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="u"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">u</span> Uso de máscara facial, resguardo de amoladora, no ubicarse en sentido de proyección.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="v"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">v</span> Aplicar técnicas de manejo defensivo, respetar velocidades máx. permitidas en yacimiento.</label><label style="display:flex;align-items:center;gap:5px;padding:3px 5px;border-radius:4px;cursor:pointer;font-size:11px;"><input type="checkbox" name="ats-medida" value="w"><span style="background:#27a06a;color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 5px;min-width:16px;text-align:center;">w</span> Planificar tareas en área de trabajo. Charla de 5".</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIESGOS DEL ENTORNO + FACTOR CLIMATICO -->
+  <div style="display:grid; grid-template-columns:2fr 1fr; gap:12px; margin-bottom:10px;">
+    <div style="border-left:3px solid #e8813a; background:#fffde7; border-radius:0 6px 6px 0; padding:10px 12px;">
+      <div style="font-weight:700; font-size:11px; color:#7a4a10; margin-bottom:5px;">⚠️ RIESGOS DEL ENTORNO</div>
+      <textarea id="ats-entorno" rows="2" placeholder="Instalaciones aledañas, operaciones simultáneas, condiciones de terreno..." style="width:100%;border:1px solid #e0c060;border-radius:4px;font-size:11px;padding:5px 7px;font-family:Arial;resize:vertical;background:transparent;"></textarea>
+      <div style="font-weight:700; font-size:11px; color:#7a4a10; margin:6px 0 4px;">Medidas Adicionales</div>
+      <textarea id="ats-medidas-adicionales" rows="2" style="width:100%;border:1px solid #e0c060;border-radius:4px;font-size:11px;padding:5px 7px;font-family:Arial;resize:vertical;background:transparent;"></textarea>
+    </div>
+    <div style="border:1px solid #c0c0c0; border-radius:6px; padding:10px 12px;">
+      <div style="font-weight:700; font-size:11px; color:#1F3864; margin-bottom:8px;">🌦️ FACTOR CLIMÁTICO</div>
+      <div style="display:flex; flex-direction:column; gap:6px;"><label style="display:flex;align-items:center;gap:7px;font-size:11px;cursor:pointer;"><input type="checkbox" name="ats-clima" value="Viento"> Viento</label><label style="display:flex;align-items:center;gap:7px;font-size:11px;cursor:pointer;"><input type="checkbox" name="ats-clima" value="Nieve / Hielo"> Nieve / Hielo</label><label style="display:flex;align-items:center;gap:7px;font-size:11px;cursor:pointer;"><input type="checkbox" name="ats-clima" value="Bueno"> Bueno</label><label style="display:flex;align-items:center;gap:7px;font-size:11px;cursor:pointer;"><input type="checkbox" name="ats-clima" value="Lluvia / Barro"> Lluvia / Barro</label><label style="display:flex;align-items:center;gap:7px;font-size:11px;cursor:pointer;"><input type="checkbox" name="ats-clima" value="Neblina"> Neblina</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- EPP -->
+  <div style="border:1px solid #c0c0c0; border-radius:6px; overflow:hidden; margin-bottom:10px;">
+    <div style="background:#BDD7EE; padding:5px 10px; font-weight:700; font-size:11px; text-align:center;">ELEMENTOS DE PROTECCIÓN PERSONAL A UTILIZAR</div>
+    <div style="padding:8px 12px; display:grid; grid-template-columns:repeat(4,1fr); gap:6px;"><label style="display:flex;align-items:center;gap:6px;font-size:11px;padding:5px 7px;border:1px solid #e0e0e0;border-radius:5px;cursor:pointer;background:#fafafa;"><input type="checkbox" name="ats-epp" value="Casco de seguridad"> Casco de seguridad</label><label style="display:flex;align-items:center;gap:6px;font-size:11px;padding:5px 7px;border:1px solid #e0e0e0;border-radius:5px;cursor:pointer;background:#fafafa;"><input type="checkbox" name="ats-epp" value="Protector auditivo"> Protector auditivo</label><label style="display:flex;align-items:center;gap:6px;font-size:11px;padding:5px 7px;border:1px solid #e0e0e0;border-radius:5px;cursor:pointer;background:#fafafa;"><input type="checkbox" name="ats-epp" value="Protección Respiratoria"> Protección Respiratoria</label><label style="display:flex;align-items:center;gap:6px;font-size:11px;padding:5px 7px;border:1px solid #e0e0e0;border-radius:5px;cursor:pointer;background:#fafafa;"><input type="checkbox" name="ats-epp" value="Lentes de seguridad"> Lentes de seguridad</label><label style="display:flex;align-items:center;gap:6px;font-size:11px;padding:5px 7px;border:1px solid #e0e0e0;border-radius:5px;cursor:pointer;background:#fafafa;"><input type="checkbox" name="ats-epp" value="Arnes Completo"> Arnes Completo</label><label style="display:flex;align-items:center;gap:6px;font-size:11px;padding:5px 7px;border:1px solid #e0e0e0;border-radius:5px;cursor:pointer;background:#fafafa;"><input type="checkbox" name="ats-epp" value="Antiparras de Corte"> Antiparras de Corte</label><label style="display:flex;align-items:center;gap:6px;font-size:11px;padding:5px 7px;border:1px solid #e0e0e0;border-radius:5px;cursor:pointer;background:#fafafa;"><input type="checkbox" name="ats-epp" value="Calzado de seguridad"> Calzado de seguridad</label><label style="display:flex;align-items:center;gap:6px;font-size:11px;padding:5px 7px;border:1px solid #e0e0e0;border-radius:5px;cursor:pointer;background:#fafafa;"><input type="checkbox" name="ats-epp" value="Guantes"> Guantes</label><label style="display:flex;align-items:center;gap:6px;font-size:11px;padding:5px 7px;border:1px solid #e0e0e0;border-radius:5px;cursor:pointer;background:#fafafa;"><input type="checkbox" name="ats-epp" value="Careta de soldador"> Careta de soldador</label><label style="display:flex;align-items:center;gap:6px;font-size:11px;padding:5px 7px;border:1px solid #e0e0e0;border-radius:5px;cursor:pointer;background:#fafafa;"><input type="checkbox" name="ats-epp" value="Protección Facial"> Protección Facial</label><label style="display:flex;align-items:center;gap:6px;font-size:11px;padding:5px 7px;border:1px solid #e0e0e0;border-radius:5px;cursor:pointer;background:#fafafa;"><input type="checkbox" name="ats-epp" value="Mameluco Descartable"> Mameluco Descartable</label><label style="display:flex;align-items:center;gap:6px;font-size:11px;padding:5px 7px;border:1px solid #e0e0e0;border-radius:5px;cursor:pointer;background:#fafafa;"><input type="checkbox" name="ats-epp" value="Otros"> Otros</label>
+    </div>
+  </div>
+
+  <!-- HERRAMIENTAS / EQUIPOS -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:10px;">
+    <div><div style="font-size:10px;font-weight:700;color:#5a6478;text-transform:uppercase;margin-bottom:4px;">HERRAMIENTAS</div>
+    <textarea id="ats-herramientas" rows="2" style="width:100%;border:1px solid #ccc;border-radius:4px;font-size:12px;padding:5px 8px;font-family:Arial;resize:vertical;"></textarea></div>
+    <div><div style="font-size:10px;font-weight:700;color:#5a6478;text-transform:uppercase;margin-bottom:4px;">EQUIPOS</div>
+    <textarea id="ats-equipos" rows="2" style="width:100%;border:1px solid #ccc;border-radius:4px;font-size:12px;padding:5px 8px;font-family:Arial;resize:vertical;"></textarea></div>
+  </div>
+
+  <!-- PERMISO DE TRABAJO + MUESTREO + LÍNEA DE FUEGO -->
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:10px;">
+    <div style="border:1px solid #c0c0c0; border-radius:6px; overflow:hidden;">
+      <div style="background:#F2C94C; padding:5px 10px; font-weight:700; font-size:11px; text-align:center;">PERMISO DE TRABAJO</div>
+      <div style="padding:8px 10px; display:flex; flex-direction:column; gap:5px;"><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;"><input type="checkbox" name="ats-permiso" value="PT en caliente"> PT en caliente</label><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;"><input type="checkbox" name="ats-permiso" value="Izaje"> Izaje</label><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;"><input type="checkbox" name="ats-permiso" value="PT Especial"> PT Especial</label><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;"><input type="checkbox" name="ats-permiso" value="Espacio Confinado"> Espacio Confinado</label><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;"><input type="checkbox" name="ats-permiso" value="Excavación"> Excavación</label><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;"><input type="checkbox" name="ats-permiso" value="Aislamiento de Energía"> Aislamiento de Energía</label><label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;"><input type="checkbox" name="ats-permiso" value="Trabajo en altura"> Trabajo en altura</label>
+      </div>
+    </div>
+    <div style="border:1px solid #c0c0c0; border-radius:6px; overflow:hidden;">
+      <div style="background:#F2C94C; padding:5px 10px; font-weight:700; font-size:11px; text-align:center;">MUESTREO ATMOSFÉRICO</div>
+      <div style="padding:10px 12px; display:flex; flex-direction:column; gap:8px;"><div style="display:flex;align-items:center;gap:8px;"><div style="font-size:11px;font-weight:700;color:#5a6478;min-width:110px;">O₂</div><input type="text" placeholder="%  /  ppm" style="flex:1;border:none;border-bottom:1px solid #aaa;font-size:11px;padding:3px 2px;font-family:Arial;background:transparent;"></div><div style="display:flex;align-items:center;gap:8px;"><div style="font-size:11px;font-weight:700;color:#5a6478;min-width:110px;">LEL</div><input type="text" placeholder="%  /  ppm" style="flex:1;border:none;border-bottom:1px solid #aaa;font-size:11px;padding:3px 2px;font-family:Arial;background:transparent;"></div><div style="display:flex;align-items:center;gap:8px;"><div style="font-size:11px;font-weight:700;color:#5a6478;min-width:110px;">H₂S (Sulfhídrico)</div><input type="text" placeholder="%  /  ppm" style="flex:1;border:none;border-bottom:1px solid #aaa;font-size:11px;padding:3px 2px;font-family:Arial;background:transparent;"></div><div style="display:flex;align-items:center;gap:8px;"><div style="font-size:11px;font-weight:700;color:#5a6478;min-width:110px;">CO (Monóxido)</div><input type="text" placeholder="%  /  ppm" style="flex:1;border:none;border-bottom:1px solid #aaa;font-size:11px;padding:3px 2px;font-family:Arial;background:transparent;"></div>
+      </div>
+    </div>
+    <div style="border:1px solid #c0c0c0; border-radius:6px; overflow:hidden;">
+      <div style="background:#F2C94C; padding:5px 10px; font-weight:700; font-size:11px; text-align:center;">LÍNEA DE FUEGO</div>
+      <div style="padding:14px 12px; display:flex; flex-direction:column; align-items:center; gap:10px;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;font-weight:700;">
+          <input type="checkbox" id="ats-linea-fuego" style="width:18px;height:18px;"> Marcar si aplica
+        </label>
+        <div style="background:#c0392b;color:#fff;font-weight:700;font-size:14px;padding:10px 16px;border-radius:6px;text-align:center;line-height:1.4;">🔥 LÍNEA DE FUEGO<br><span style="font-size:10px;font-weight:400;">Salí de la mira. Los fierros no perdonan</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMERGENCIA + VISITAS -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:10px;">
+    <div style="border:1px solid #c0c0c0; border-radius:6px; overflow:hidden;">
+      <div style="background:#BDD7EE; padding:5px 10px; font-weight:700; font-size:11px; text-align:center;">INFORMACIÓN PARA EL CASO DE EMERGENCIA</div>
+      <div style="padding:10px 12px; display:flex; flex-direction:column; gap:8px;">
+        <div><div style="font-size:10px;font-weight:700;color:#5a6478;margin-bottom:2px;">UBICACIÓN PUNTO DE REUNIÓN</div><input type="text" style="width:100%;border:none;border-bottom:1px solid #aaa;font-size:12px;padding:3px 2px;font-family:Arial;background:transparent;"></div>
+        <div><div style="font-size:10px;font-weight:700;color:#5a6478;margin-bottom:2px;">UBICACIÓN ALARMA DE EMERGENCIA</div><input type="text" style="width:100%;border:none;border-bottom:1px solid #aaa;font-size:12px;padding:3px 2px;font-family:Arial;background:transparent;"></div>
+        <div><div style="font-size:10px;font-weight:700;color:#5a6478;margin-bottom:2px;">EXTINTOR CERCANO AL ÁREA</div><input type="text" style="width:100%;border:none;border-bottom:1px solid #aaa;font-size:12px;padding:3px 2px;font-family:Arial;background:transparent;"></div>
+        <div><div style="font-size:10px;font-weight:700;color:#5a6478;margin-bottom:2px;">ANTE EMERGENCIA LLAMAR (N° cliente)</div><input type="text" style="width:100%;border:none;border-bottom:1px solid #aaa;font-size:12px;padding:3px 2px;font-family:Arial;background:transparent;"></div>
+      </div>
+    </div>
+    <div style="border:1px solid #c0c0c0; border-radius:6px; overflow:hidden;">
+      <div style="background:#BDD7EE; padding:5px 10px; font-weight:700; font-size:11px; text-align:center;">VISITAS / AUDITORÍA</div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;">
+        <tr style="background:#eef2f8;"><th style="padding:5px 8px;border:1px solid #d0d8e4;text-align:left;">Nombre y Apellido</th><th style="padding:5px 8px;border:1px solid #d0d8e4;width:28%;text-align:left;">Función</th><th style="padding:5px 8px;border:1px solid #d0d8e4;width:22%;text-align:left;">Firma</th></tr><tr><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;height:32px;"></td></tr><tr><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;height:32px;"></td></tr><tr><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;height:32px;"></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- CHARLA DE 5' -->
+  <div style="border:1px solid #c0c0c0; border-radius:6px; overflow:hidden; margin-bottom:10px;">
+    <div style="background:#F2C94C; padding:6px 14px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;font-weight:700;">
+        <input type="checkbox" id="ats-charla" style="width:16px;height:16px;"> ✅ Charla de 5"
+      </label>
+      <div style="display:flex;align-items:center;gap:8px;flex:1;">
+        <span style="font-size:11px;font-weight:700;white-space:nowrap;">TEMA:</span>
+        <input type="text" id="ats-charla-tema" placeholder="Ingrese el tema de la charla..." style="flex:1;border:none;border-bottom:1px solid #9a7a10;font-size:12px;padding:3px 6px;font-family:Arial;background:transparent;min-width:180px;">
+      </div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px;">
+      <tr style="background:#eef2f8;">
+        <th style="padding:5px 8px;border:1px solid #d0d8e4;text-align:left;">Nombre y Apellido</th>
+        <th style="padding:5px 8px;border:1px solid #d0d8e4;width:16%;text-align:left;">Función</th>
+        <th style="padding:5px 8px;border:1px solid #d0d8e4;width:16%;text-align:left;">Firma</th>
+        <th style="padding:5px 8px;border:1px solid #d0d8e4;text-align:left;">Nombre y Apellido</th>
+        <th style="padding:5px 8px;border:1px solid #d0d8e4;width:16%;text-align:left;">Función</th>
+        <th style="padding:5px 8px;border:1px solid #d0d8e4;width:16%;text-align:left;">Firma</th>
+      </tr><tr><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;height:34px;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;height:34px;"></td></tr><tr><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;height:34px;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;height:34px;"></td></tr><tr><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;height:34px;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;height:34px;"></td></tr><tr><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;height:34px;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;height:34px;"></td></tr><tr><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;height:34px;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;height:34px;"></td></tr><tr><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;height:34px;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;"><input type="text" style="width:100%;border:none;font-size:11px;padding:5px 6px;font-family:Arial;"></td><td style="border:1px solid #d0d8e4;height:34px;"></td></tr>
+    </table>
+  </div>
+
+  <!-- AVISO LEGAL -->
+  <div style="background:#fff3cd;border:1px solid #f2c94c;border-radius:6px;padding:10px 16px;margin-bottom:14px;font-size:11px;text-align:center;color:#7a4a10;line-height:1.7;">
+    <strong>IMPORTANTE:</strong> CUALQUIER CAMBIO EN LA ACTIVIDAD PROGRAMADA O EN EL SITIO/ENTORNO DE TRABAJO (NO ANALIZADOS) <strong>INVALIDA</strong> EL PRESENTE ATS.<br>
+    EL ATS TENDRÁ VALIDEZ <strong>SOLAMENTE</strong> SI ESTÁ FIRMADA POR LAS PERSONAS QUE PARTICIPARON EN SU CONFECCIÓN. INCLUYENDO AL MÁXIMO RESPONSABLE DEL EQUIPO EN EL SITIO.
+  </div>
+
+  <!-- BOTONES ATS -->
+  <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+    <button onclick="limpiarATS()" style="font-family:Arial;font-size:13px;font-weight:700;padding:9px 18px;border-radius:8px;border:1px solid #c8d0dc;background:#eef2f8;color:#1F3864;cursor:pointer;">🔄 Limpiar ATS</button>
+    <button onclick="guardarATS()" style="font-family:Arial;font-size:13px;font-weight:700;padding:9px 18px;border-radius:8px;border:none;background:#27a06a;color:#fff;cursor:pointer;">💾 Guardar ATS</button>
+    <button onclick="imprimirATS()" style="font-family:Arial;font-size:13px;font-weight:700;padding:9px 18px;border-radius:8px;border:none;background:#1F3864;color:#fff;cursor:pointer;">🖨️ Imprimir ATS</button>
+    <button onclick="cerrarATS()" style="font-family:Arial;font-size:13px;font-weight:700;padding:9px 18px;border-radius:8px;border:none;background:#c0392b;color:#fff;cursor:pointer;">✕ Cerrar</button>
+  </div>
+
+  </div>
+</div>
+</div>
+</div>
+
+<script>
+  function abrirATS() {
+    const fechaMain = document.getElementById('fecha');
+    if (fechaMain && fechaMain.value) document.getElementById('ats-fecha').value = fechaMain.value;
+    const otMain = document.getElementById('ats-ot');
+    document.getElementById('ats-modal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  }
+  function cerrarATS() {
+    document.getElementById('ats-modal').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  async function limpiarATS() {
+    if (!(await pregunta('¿Limpiar todos los datos del ATS?'))) return;
+    document.querySelectorAll('#ats-form input[type=text],#ats-form input[type=date],#ats-form textarea,#ats-form select').forEach(el=>el.value='');
+    document.querySelectorAll('#ats-form input[type=checkbox],#ats-form input[type=radio]').forEach(el=>el.checked=false);
+  }
+  function guardarATS() {
+    const get = id => { const el=document.getElementById(id); return el?el.value:''; };
+    const checks = name => [...document.querySelectorAll('#ats-form input[name='+name+']:checked')].map(el=>el.value);
+    const data = {
+      fecha:get('ats-fecha'), ot:get('ats-ot'), descripcion:get('ats-desc'), sitio:get('ats-sitio'),
+      dominio:get('ats-dominio'),
+      radios:(document.querySelector('input[name=ats-radios]:checked')||{}).value||'',
+      peligros:checks('ats-peligro'), riesgos:checks('ats-riesgo'), medidas:checks('ats-medida'),
+      clima:checks('ats-clima'), epp:checks('ats-epp'), permisos:checks('ats-permiso'),
+      entorno:get('ats-entorno'), medidasAdicionales:get('ats-medidas-adicionales'),
+      herramientas:get('ats-herramientas'), equipos:get('ats-equipos'),
+      lineaDeFuego:document.getElementById('ats-linea-fuego').checked,
+      charla:document.getElementById('ats-charla').checked, charlaTema:get('ats-charla-tema'),
+    };
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download='ATS_'+(data.fecha||'sin-fecha')+'.json'; a.click();
+  }
+  function imprimirATS() {
+    const content = document.getElementById('ats-form').innerHTML;
+    const win = window.open('','_blank','width=1100,height=800');
+    win.document.write('<html><head><title>ATS BLAU CYT</title><style>body{font-family:Arial,sans-serif;font-size:12px;margin:16px;} input,textarea,select{border:none;border-bottom:1px solid #aaa;background:transparent;font-family:Arial;font-size:11px;} input[type=checkbox],input[type=radio]{width:auto;height:auto;} @media print{body{margin:8px;}}</style></head><body>'+content+'<script>window.print();<'+'/script></body></html>');
+    win.document.close();
+  }
+  document.getElementById('ats-modal').addEventListener('click',function(e){if(e.target===this)cerrarATS();});
+</script>
+
+<!-- PARTE DE SERVICIO DE MANTENIMIENTO -->
+<div id="pm-modal">
+<div class="pm-shell">
+<div class="pm" id="pm-form">
+  <div class="pm-bar"><span class="pm-bar-title">Parte de Servicio de Mantenimiento</span><button onclick="cerrarParte()" title="Cerrar">✕</button></div>
+  <div class="pm-page">
+    <div class="pm-head">
+      <img id="pm-logo" alt="BLAU">
+      <div class="pm-title">PARTE DE SERVICIO DE<br>MANTENIMIENTO<div style="font-size:11px;font-weight:400;color:#5a6478;margin-top:4px;">N° <input data-pm="numero" id="pm-numero" style="width:190px;display:inline-block;text-align:center;" placeholder="PM20260902_0056"></div></div>
+      <div class="pm-idbox">
+        <span>Unidad:</span><input data-pm="unidad" placeholder="21007A">
+        <span>Ubicación:</span><input data-pm="ubicacion" placeholder="CTB10">
+        <span>Mant. Prev/Correc:</span><select data-pm="tipo"><option></option><option value="P">P — Preventivo</option><option value="C">C — Correctivo</option><option value="Pd">Pd — Predictivo</option></select>
+        <span>Facturable:</span><input type="checkbox" data-pm="facturable" style="width:18px;height:18px;justify-self:center;">
+      </div>
+    </div>
+    <div class="pm-times">
+      <div><label>Hora de inicio</label><input type="time" data-pm="hInicio"></div>
+      <div><label>Hora de cierre</label><input type="time" data-pm="hCierre"></div>
+      <div><label>Horas de la unidad</label><div class="pm-hu"><input data-pm="horas" placeholder="hs"><input data-pm="arranques" placeholder="Arr."></div></div>
+      <div><label>Fecha</label><input type="date" data-pm="fecha" id="pm-fecha"></div>
+    </div>
+    <div class="pm-cliente"><div>CLIENTE</div><input data-pm="cliente" id="pm-cliente" placeholder="0056 - CHEVRON ARGENTINA SRL"></div>
+    <div class="pm-scroll"><table class="pm-table">
+      <thead><tr><th>Tareas para realizar y repuestos utilizados</th><th>SI / NO</th><th>Cantidad</th><th colspan="3">Condiciones operativas al finalizar + 1 hora</th></tr></thead>
+      <tbody>
+<tr><td>Cambio de filtro prim. de aceite</td><td class="pm-sn"><select data-pm="t0sn"><option></option><option>Si</option><option>No</option></select></td><td class="pm-q"><input data-pm="t0q"></td><td>Velocidad de motor</td><td class="pm-v"><input data-pm="c0" inputmode="decimal"></td><td class="pm-u">% / RPM</td></tr>
+<tr><td>Cambio de filtro sec. de aceite</td><td class="pm-sn"><select data-pm="t1sn"><option></option><option>Si</option><option>No</option></select></td><td class="pm-q"><input data-pm="t1q"></td><td>Presión de succión</td><td class="pm-v"><input data-pm="c1" inputmode="decimal"></td><td class="pm-u">kg/cm2</td></tr>
+<tr><td>Inspección/cambio filtro coalesc.</td><td class="pm-sn"><select data-pm="t2sn"><option></option><option>Si</option><option>No</option></select></td><td class="pm-q"><input data-pm="t2q"></td><td>Presión de descarga</td><td class="pm-v"><input data-pm="c2" inputmode="decimal"></td><td class="pm-u">kg/cm2</td></tr>
+<tr><td>Limpieza filtro “Y” recupero aceite</td><td class="pm-sn"><select data-pm="t3sn"><option></option><option>Si</option><option>No</option></select></td><td class="pm-q"><input data-pm="t3q"></td><td>Temp. gas de ingreso</td><td class="pm-v"><input data-pm="c3" inputmode="decimal"></td><td class="pm-u">°C</td></tr>
+<tr><td>Verificación presión de aceite lubr.</td><td class="pm-sn"><select data-pm="t4sn"><option></option><option>Si</option><option>No</option></select></td><td class="pm-q"><input data-pm="t4q"></td><td>Temp. gas de descarga</td><td class="pm-v"><input data-pm="c4" inputmode="decimal"></td><td class="pm-u">°C</td></tr>
+<tr><td>Verificación bomba aceite lubr.</td><td class="pm-sn"><select data-pm="t5sn"><option></option><option>Si</option><option>No</option></select></td><td class="pm-q"><input data-pm="t5q"></td><td>Temp. aceite compresor</td><td class="pm-v"><input data-pm="c5" inputmode="decimal"></td><td class="pm-u">°C</td></tr>
+<tr><td>Acumulado de aceite sello compr.</td><td class="pm-sn"><select data-pm="t6sn"><option></option><option>Si</option><option>No</option></select></td><td class="pm-q"><input data-pm="t6q"></td><td>Temp. de motor principal</td><td class="pm-v"><input data-pm="c6" inputmode="decimal"></td><td class="pm-u">°C</td></tr>
+<tr><td>Tomar muestras de aceite</td><td class="pm-sn"><select data-pm="t7sn"><option></option><option>Si</option><option>No</option></select></td><td class="pm-q"><input data-pm="t7q"></td><td>Presión de aceite compr.</td><td class="pm-v"><input data-pm="c7" inputmode="decimal"></td><td class="pm-u">kg/cm2</td></tr>
+<tr><td>Verificar calefacción de aceite</td><td class="pm-sn"><select data-pm="t8sn"><option></option><option>Si</option><option>No</option></select></td><td class="pm-q"><input data-pm="t8q"></td><td>Presión dif. filtro succión</td><td class="pm-v"><input data-pm="c8" inputmode="decimal"></td><td class="pm-u">kg/cm2</td></tr>
+<tr><td>Medición de juego en compresor</td><td class="pm-sn"><select data-pm="t9sn"><option></option><option>Si</option><option>No</option></select></td><td class="pm-q"><input data-pm="t9q"></td><td>Presión dif. filtro primario</td><td class="pm-v"><input data-pm="c9" inputmode="decimal"></td><td class="pm-u">kg/cm2</td></tr>
+<tr><td>Inspección/cambio filtro succión</td><td class="pm-sn"><select data-pm="t10sn"><option></option><option>Si</option><option>No</option></select></td><td class="pm-q"><input data-pm="t10q"></td><td>Presión dif. filtro secund.</td><td class="pm-v"><input data-pm="c10" inputmode="decimal"></td><td class="pm-u">kg/cm2</td></tr>
+<tr><td>Inspección visores de nivel</td><td class="pm-sn"><select data-pm="t11sn"><option></option><option>Si</option><option>No</option></select></td><td class="pm-q"><input data-pm="t11q"></td><td>Presión dif. filtro coalesc.</td><td class="pm-v"><input data-pm="c11" inputmode="decimal"></td><td class="pm-u">kg/cm2</td></tr>
+<tr><td>Verificar sistema de drenajes</td><td class="pm-sn"><select data-pm="t12sn"><option></option><option>Si</option><option>No</option></select></td><td class="pm-q"><input data-pm="t12q"></td><td>Capacidad de compresor</td><td class="pm-v"><input data-pm="c12" inputmode="decimal"></td><td class="pm-u">%</td></tr>
+<tr><td>Análisis termográfico</td><td class="pm-sn"><select data-pm="t13sn"><option></option><option>Si</option><option>No</option></select></td><td class="pm-q"><input data-pm="t13q"></td><td>Consumo de motor</td><td class="pm-v"><input data-pm="c13" inputmode="decimal"></td><td class="pm-u">Amp</td></tr>
+<tr><td>Análisis de ruido en rodamientos</td><td class="pm-sn"><select data-pm="t14sn"><option></option><option>Si</option><option>No</option></select></td><td class="pm-q"><input data-pm="t14q"></td><td>Nivel aceite compresor</td><td class="pm-v"><input data-pm="c14" inputmode="decimal"></td><td class="pm-u">%</td></tr>
+<tr><td>Completar aceite de compresor</td><td class="pm-sn"><select data-pm="t15sn"><option></option><option>Si</option><option>No</option></select></td><td class="pm-q"><input data-pm="t15q"></td><td>Caudal de gas</td><td class="pm-v"><input data-pm="c15" inputmode="decimal"></td><td class="pm-u">m3/día</td></tr>
+      </tbody></table></div>
+    <div class="pm-bottom">
+      <div>
+        <div class="pm-sig"><div class="pm-sig-label">Firma Blau</div><canvas id="pm-sig-blau" width="400" height="130"></canvas><button onclick="clearCanvas('pm-sig-blau')">&#8635; Limpiar firma</button></div>
+        <div class="pm-sig"><div class="pm-sig-label">Firma cliente</div><canvas id="pm-sig-cliente" width="400" height="130"></canvas><button onclick="clearCanvas('pm-sig-cliente')">&#8635; Limpiar firma</button></div>
+      </div>
+      <div>
+        <table class="pm-grid"><tr><th colspan="2">Técnico y vehículo</th></tr>
+          <tr><td>Apellido y nombre</td><td><input data-pm="tec0"></td></tr><tr><td>Apellido y nombre</td><td><input data-pm="tec1"></td></tr><tr><td>Apellido y nombre</td><td><input data-pm="tec2"></td></tr><tr><td>Apellido y nombre</td><td><input data-pm="tec3"></td></tr>
+          <tr><td>Vehículo utilizado</td><td><input data-pm="vehiculo" placeholder="Dominio - marca y modelo"></td></tr>
+          <tr><td>Kilómetros recorridos</td><td><input data-pm="km" inputmode="numeric"></td></tr>
+        </table>
+        <table class="pm-grid"><tr><th colspan="2">Datos del firmante (cliente)</th></tr>
+          <tr><td>Apellido y nombre</td><td><input data-pm="fc0"></td></tr>
+          <tr><td>Apellido y nombre</td><td><input data-pm="fc1"></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="pm-sep"></div>
+    <div class="pm-anexo">
+      <div class="pm-anexo-title">Anexo 1</div>
+      <div class="pm-anexo-box">
+        <div>Tareas realizadas, repuestos utilizados, componentes adicionales y recomendaciones</div>
+        <textarea data-pm="anexo" id="pm-anexo" placeholder="Traslado, tareas realizadas, mediciones, repuestos y recomendaciones..."></textarea>
+        <div class="pm-anexo-print" id="pm-anexo-print" style="display:none;"></div>
+        <div class="pm-fotos" id="pm-fotos"></div>
+        <label class="pm-add-foto pm-noprint">&#128247; Agregar fotos<input type="file" accept="image/*" multiple id="pm-foto-input" style="display:none;"></label>
+      </div>
+    </div>
+  </div>
+  <div class="pm-actions">
+    <span style="margin-right:auto; align-self:center; font-size:11.5px; color:#5a6478;">Este parte se guarda junto con el reporte de servicio.</span>
+    <button class="pm-b-red" onclick="limpiarParte()">&#8635; Limpiar parte</button>
+    <button class="pm-b-grey" onclick="guardarReporte()">&#128190; Guardar reporte</button>
+    <button class="pm-b-blue" onclick="imprimirParte()">&#128438; Imprimir / PDF</button>
+    <button class="pm-b-green" onclick="cerrarParte()">&#10004; Listo</button>
+  </div>
+</div>
+</div>
+</div>
+</div>
+<script>
+(function(){
+  const modal = document.getElementById('pm-modal');
+  const $ = k => modal.querySelector('[data-pm="'+k+'"]');
+  const fields = () => [...modal.querySelectorAll('[data-pm]')];
+  let fotos = [];
+
+  document.getElementById('pm-logo').src = document.querySelector('.logo-img').src;
+  initCanvas('pm-sig-blau');
+  initCanvas('pm-sig-cliente');
+
+  // Número de parte sugerido: PM + fecha + código de cliente
+  function sugerirNumero(){
+    const f = ($('fecha').value || '').replace(/-/g,'');
+    const cod = (($('cliente').value || '').match(/^\s*(\d+)/) || [])[1] || '';
+    if (f) $('numero').value = 'PM' + f + (cod ? '_' + cod : '');
+  }
+  let numeroManual = false;
+  $('numero').addEventListener('input', () => numeroManual = true);
+  ['fecha','cliente'].forEach(k => $(k).addEventListener('input', () => { if (!numeroManual) sugerirNumero(); }));
+
+  // Precarga desde el reporte principal (solo campos vacíos)
+  function precargar(){
+    const v = id => (document.getElementById(id) || {}).value || '';
+    const fill = (k, val) => { if (val && !$(k).value) $(k).value = val; };
+    fill('fecha', v('fecha'));
+    fill('hInicio', v('hora-inicio'));
+    fill('hCierre', v('hora-fin'));
+    fill('horas', v('horas-unidad'));
+    fill('arranques', v('arranques'));
+    fill('cliente', v('empresa'));
+    fill('ubicacion', v('instalacion'));
+    fill('tec0', v('tecnico'));
+    fill('vehiculo', v('vehiculo'));
+    const tipo = (document.querySelector('input[name="tipo"]:checked') || {}).value;
+    fill('tipo', {Preventivo:'P', Correctivo:'C', Predictivo:'Pd'}[tipo]);
+    if (!$('anexo').value) {
+      const tareas = [...document.querySelectorAll('.task-row textarea')].map(t => t.value.trim()).filter(Boolean);
+      const rec = v('recomendaciones').trim();
+      const txt = tareas.join('\n') + (rec ? (tareas.length ? '\n\n' : '') + 'Recomendaciones: ' + rec : '');
+      if (txt) $('anexo').value = txt;
+    }
+    if (!numeroManual && !$('numero').value) sugerirNumero();
+  }
+
+  window.abrirParte = function(){
+    precargar();
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  };
+  window.cerrarParte = function(){
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+  };
+  modal.addEventListener('click', e => { if (e.target === modal || e.target.classList.contains('pm-shell')) cerrarParte(); });
+
+  // Fotos (se reducen a 1400 px para que el archivo guardado no sea pesado)
+  function renderFotos(){
+    const box = document.getElementById('pm-fotos');
+    box.innerHTML = '';
+    fotos.forEach((src, i) => {
+      const d = document.createElement('div'); d.className = 'pm-foto';
+      d.innerHTML = '<img alt="Foto ' + (i + 1) + '"><button title="Quitar">×</button>';
+      const img = d.querySelector('img');
+      if (String(src).startsWith('data:')) img.src = src;
+      else if (window.PM_resolverFoto) window.PM_resolverFoto(src).then(u => { if (u) img.src = u; });
+      d.querySelector('button').onclick = () => { fotos.splice(i,1); renderFotos(); };
+      box.appendChild(d);
+    });
+  }
+  function reducir(file){
+    return new Promise(res => {
+      const img = new Image(), url = URL.createObjectURL(file);
+      img.onload = () => {
+        const max = 1400, k = Math.min(1, max / Math.max(img.width, img.height));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        res(c.toDataURL('image/jpeg', 0.82));
+      };
+      img.onerror = () => res(null);
+      img.src = url;
+    });
+  }
+  document.getElementById('pm-foto-input').addEventListener('change', async e => {
+    for (const f of e.target.files) { const d = await reducir(f); if (d) fotos.push(d); }
+    e.target.value = '';
+    renderFotos();
+  });
+
+  // Firmas
+  const firmaData = id => {
+    const c = document.getElementById(id);
+    const blank = document.createElement('canvas'); blank.width = c.width; blank.height = c.height;
+    return c.toDataURL() === blank.toDataURL() ? '' : c.toDataURL();
+  };
+  const firmaCargar = (id, src) => {
+    clearCanvas(id);
+    if (!src) return;
+    const img = new Image();
+    img.onload = () => document.getElementById(id).getContext('2d').drawImage(img, 0, 0);
+    img.src = src;
+  };
+
+  // ── API para el reporte principal (el parte se guarda dentro del reporte) ──
+  function leer(){
+    const data = {};
+    fields().forEach(el => data[el.dataset.pm] = el.type === 'checkbox' ? el.checked : el.value);
+    data.firmaBlau = firmaData('pm-sig-blau');
+    data.firmaCliente = firmaData('pm-sig-cliente');
+    data.fotos = fotos.slice();
+    return data;
+  }
+  function escribir(d){
+    d = d || {};
+    fields().forEach(el => { const v = d[el.dataset.pm]; if (el.type === 'checkbox') el.checked = !!v; else el.value = v == null ? '' : v; });
+    numeroManual = !!d.numero;
+    firmaCargar('pm-sig-blau', d.firmaBlau);
+    firmaCargar('pm-sig-cliente', d.firmaCliente);
+    fotos = Array.isArray(d.fotos) ? d.fotos.slice() : [];
+    renderFotos();
+  }
+  function vaciar(){
+    fields().forEach(el => { if (el.type === 'checkbox') el.checked = false; else el.value = ''; });
+    clearCanvas('pm-sig-blau'); clearCanvas('pm-sig-cliente');
+    fotos = []; renderFotos(); numeroManual = false;
+  }
+  function tieneDatos(d){
+    d = d || leer();
+    if (d.anexo || d.firmaBlau || d.firmaCliente || (d.fotos && d.fotos.length) || d.unidad) return true;
+    for (let i = 0; i < 16; i++) if (d['t'+i+'sn'] || d['t'+i+'q'] || d['c'+i]) return true;
+    return false;
+  }
+  function reemplazarFotos(rutas){
+    if (!Array.isArray(rutas) || rutas.length !== fotos.length) return;
+    fotos = fotos.map((f, i) => String(f).startsWith('data:') ? rutas[i] : f);
+  }
+  window.PM = { leer, escribir, vaciar, tieneDatos, reemplazarFotos };
+
+  window.limpiarParte = async function(){
+    if (!(await pregunta('¿Limpiar todos los datos del parte?'))) return;
+    vaciar();
+  };
+
+  window.imprimirParte = function(){
+    document.getElementById('pm-anexo-print').textContent = $('anexo').value;
+    const prevTitle = document.title;
+    document.title = $('numero').value || 'Parte de Servicio de Mantenimiento';
+    document.body.classList.add('print-pm');
+    const fin = () => { document.body.classList.remove('print-pm'); document.title = prevTitle; window.removeEventListener('afterprint', fin); };
+    window.addEventListener('afterprint', fin);
+    window.print();
+    setTimeout(fin, 1500);
+  };
+})();
+</script>
+<!-- INGRESO -->
+<div id="rs-login">
+  <form class="rs-login-card" id="rs-login-form" autocomplete="on">
+    <img id="rs-login-logo" alt="BLAU">
+    <h2>Reportes de Servicio VRU</h2>
+    <p>Ingresá con tu usuario de BLAU CYT</p>
+    <label for="rs-login-email">Correo</label>
+    <input type="email" id="rs-login-email" autocomplete="username" required>
+    <label for="rs-login-pass">Contraseña</label>
+    <input type="password" id="rs-login-pass" autocomplete="current-password" required>
+    <button type="submit" id="rs-login-btn">Ingresar</button>
+    <div id="rs-login-err"></div>
+  </form>
+</div>
+<script>document.getElementById('rs-login-logo').src = document.querySelector('.logo-img').src;</script>
+<div class="rs-toast" id="rs-toast"></div>
+<script>
+(function(){
+  const g = id => document.getElementById(id);
+  const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const CAMPOS = ['dia','fecha','hora-inicio','hora-fin','horas-unidad','arranques','empresa','yacimiento','instalacion',
+                  'marca','modelo','equipo','tecnico','vehiculo','recomendaciones','firma-tecnico-nombre','firma-cliente-nombre'];
+  const CFG = window.BLAU_CONFIG || {};
+  const BUCKET = CFG.bucket || 'fotos-servicios';
+  const TABLA = 'servicios';
+  let actual = null;            // registro abierto {id, estado, creado, modificado, finalizado, creado_por}
+  let usuario = null;           // email de la sesión
+  let sincronizando = false, otraVez = false;
+
+  function toast(msg){
+    const t = g('rs-toast'); t.textContent = msg; t.classList.add('on');
+    clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 2600);
+  }
+
+  // ════════ SUPABASE ════════
+  const configurado = CFG.supabaseUrl && CFG.supabaseAnonKey && !/TU-PROYECTO|PEGAR/.test(CFG.supabaseUrl + CFG.supabaseAnonKey);
+  const sb = (configurado && window.supabase) ? window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, {
+    auth: { persistSession: true, autoRefreshToken: true }
+  }) : null;
+
+  // ════════ CACHÉ LOCAL (IndexedDB) — permite trabajar sin señal ════════
+  // Cada registro local: {id, estado, creado, modificado, finalizado, creado_por, modificado_por,
+  //                       reporte, ats, parte, sync: 'ok' | 'pendiente' | 'borrar'}
+  let dbp = null;
+  function db(){
+    if (!dbp) dbp = new Promise((res, rej) => {
+      const r = indexedDB.open('blau_servicios_nube', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('reportes', {keyPath:'id'});
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+    return dbp;
+  }
+  async function tx(mode, fn){
+    const d = await db();
+    return new Promise((res, rej) => {
+      const t = d.transaction('reportes', mode), req = fn(t.objectStore('reportes'));
+      t.oncomplete = () => res(req.result);
+      t.onerror = () => rej(t.error);
+    });
+  }
+  const locAll = () => tx('readonly', s => s.getAll());
+  const locGet = id => tx('readonly', s => s.get(id));
+  const locPut = r => tx('readwrite', s => s.put(r));
+  const locDel = id => tx('readwrite', s => s.delete(id));
+  const visibles = async () => (await locAll()).filter(r => r.sync !== 'borrar');
+
+  // ════════ FOTOS: data: = nueva (se sube), texto = ruta en Storage ════════
+  const urlCache = {};
+  async function urlFoto(path){
+    if (urlCache[path] && urlCache[path].vence > Date.now()) return urlCache[path].url;
+    if (!sb) return '';
+    const { data, error } = await sb.storage.from(BUCKET).createSignedUrl(path, 3600);
+    if (error) return '';
+    urlCache[path] = { url: data.signedUrl, vence: Date.now() + 3300 * 1000 };
+    return data.signedUrl;
+  }
+  window.PM_resolverFoto = urlFoto;
+  async function dataUrlABlob(u){ return (await fetch(u)).blob(); }
+
+  async function subirFotos(rec){
+    const fotos = (rec.parte && rec.parte.fotos) || [];
+    const salida = [];
+    for (let i = 0; i < fotos.length; i++) {
+      const f = fotos[i];
+      if (typeof f === 'string' && f.startsWith('data:')) {
+        const path = rec.id + '/' + Date.now() + '_' + i + '.jpg';
+        const { error } = await sb.storage.from(BUCKET).upload(path, await dataUrlABlob(f), { contentType: 'image/jpeg', upsert: true });
+        if (error) throw error;
+        salida.push(path);
+      } else salida.push(f);
+    }
+    return salida;
+  }
+  async function limpiarFotosSobrantes(id, usadas){
+    try {
+      const { data } = await sb.storage.from(BUCKET).list(id, { limit: 1000 });
+      const sobran = (data || []).map(o => id + '/' + o.name).filter(p => !usadas.includes(p));
+      if (sobran.length) await sb.storage.from(BUCKET).remove(sobran);
+    } catch(e) {}
+  }
+
+  // ════════ SINCRONIZACIÓN ════════
+  const filaDesde = r => { const d = r.reporte || {}, p = r.parte || {};
+    return { id: r.id, estado: r.estado, creado: r.creado, modificado: r.modificado, finalizado: r.finalizado,
+      fecha: d.fecha || null, tipo: d.tipo || null, empresa: d.empresa || null, yacimiento: d.yacimiento || null,
+      equipo: d.equipo || null, tecnico: d.tecnico || null, parte_numero: p.numero || null,
+      creado_por: r.creado_por || usuario, modificado_por: r.modificado_por || usuario,
+      reporte: r.reporte, ats: r.ats, parte: r.parte }; };
+  const registroDesde = f => ({ id: f.id, estado: f.estado, creado: f.creado, modificado: f.modificado, finalizado: f.finalizado,
+      creado_por: f.creado_por, modificado_por: f.modificado_por, reporte: f.reporte || {}, ats: f.ats || {}, parte: f.parte || {}, sync: 'ok' });
+
+  async function sincronizar(silencioso){
+    if (sincronizando) { otraVez = true; return; }
+    if (!sb || !usuario) return actualizarEstadoSync();
+    if (!navigator.onLine) return actualizarEstadoSync();
+    sincronizando = true; actualizarEstadoSync();
+    let errores = 0;
+    try {
+      // 1) subir cambios locales
+      for (const r of await locAll()) {
+        try {
+          if (r.sync === 'borrar') {
+            const { error } = await sb.from(TABLA).delete().eq('id', r.id);
+            if (error) throw error;
+            await limpiarFotosSobrantes(r.id, []);
+            await locDel(r.id);
+          } else if (r.sync === 'pendiente') {
+            const fotos = await subirFotos(r);
+            r.parte = Object.assign({}, r.parte, { fotos });
+            const { error } = await sb.from(TABLA).upsert(filaDesde(r));
+            if (error) throw error;
+            await limpiarFotosSobrantes(r.id, fotos);
+            r.sync = 'ok';
+            await locPut(r);
+            if (actual && actual.id === r.id) PM.reemplazarFotos(fotos);
+          }
+        } catch(e) { errores++; console.error('Sync', r.id, e); }
+      }
+      // 2) bajar lo que cargaron otros equipos
+      const { data, error } = await sb.from(TABLA).select('*').order('modificado', { ascending: false });
+      if (error) throw error;
+      const remotos = new Map(data.map(f => [f.id, f]));
+      for (const l of await locAll()) {
+        if (l.sync === 'ok' && !remotos.has(l.id)) await locDel(l.id);     // lo eliminaron desde otro equipo
+      }
+      for (const f of data) {
+        const l = await locGet(f.id);
+        if (l && l.sync !== 'ok' && l.modificado >= f.modificado) continue;  // mi cambio local es más nuevo
+        await locPut(registroDesde(f));
+      }
+    } catch(e) {
+      errores++; console.error('Sync', e);
+      if (!silencioso) aviso('No se pudo sincronizar con la nube: ' + (e.message || e) + '\nLos datos quedan guardados en este equipo y se vuelven a enviar solos.');
+    }
+    sincronizando = false;
+    await actualizarEstadoSync(errores);
+    if (otraVez) { otraVez = false; setTimeout(() => sincronizar(true), 200); }
+    if (!g('rs-tab-reporte').classList.contains('on')) renderListas();
+  }
+  window.sincronizarAhora = () => sincronizar(false);
+  window.addEventListener('online', () => sincronizar(true));
+  window.addEventListener('offline', () => actualizarEstadoSync());
+  setInterval(() => { if (document.visibilityState === 'visible') sincronizar(true); }, 60000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') sincronizar(true); });
+
+  async function actualizarEstadoSync(errores){
+    const el = g('rs-sync'); if (!el) return;
+    let pend = 0; try { pend = (await locAll()).filter(r => r.sync !== 'ok').length; } catch(e) {}
+    let txt, cls;
+    if (!sb) { txt = 'Sin configurar la nube (solo este equipo)'; cls = 'off'; }
+    else if (sincronizando) { txt = 'Sincronizando…'; cls = 'run'; }
+    else if (!navigator.onLine) { txt = 'Sin conexión' + (pend ? ' · ' + pend + ' pendiente' + (pend > 1 ? 's' : '') : ''); cls = 'off'; }
+    else if (pend || errores) { txt = pend + ' pendiente' + (pend !== 1 ? 's' : '') + ' de enviar'; cls = 'warn'; }
+    else { txt = 'Sincronizado'; cls = 'ok'; }
+    el.className = 'rs-sync ' + cls; g('rs-sync-txt').textContent = txt;
+    contadores();
+  }
+
+  // ════════ LOGIN ════════
+  async function iniciarSesion(){
+    if (!sb) { g('rs-login').style.display = 'none'; g('rs-user').textContent = ''; actualizarEstadoSync(); return; }
+    const { data } = await sb.auth.getSession();
+    if (data.session) entrar(data.session.user);
+    else g('rs-login').style.display = 'flex';
+    sb.auth.onAuthStateChange((ev, ses) => { if (ev === 'SIGNED_OUT') { usuario = null; g('rs-login').style.display = 'flex'; } });
+  }
+  function entrar(user){
+    usuario = user.email;
+    g('rs-login').style.display = 'none';
+    g('rs-user').textContent = usuario;
+    g('rs-salir').style.display = '';
+    sincronizar(true);
+  }
+  g('rs-login-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = g('rs-login-btn'), err = g('rs-login-err');
+    err.textContent = ''; btn.disabled = true; btn.textContent = 'Ingresando…';
+    const { data, error } = await sb.auth.signInWithPassword({ email: g('rs-login-email').value.trim(), password: g('rs-login-pass').value });
+    btn.disabled = false; btn.textContent = 'Ingresar';
+    if (error) { err.textContent = navigator.onLine ? 'Usuario o contraseña incorrectos.' : 'Sin conexión. Para el primer ingreso hace falta señal.'; return; }
+    g('rs-login-pass').value = '';
+    entrar(data.user);
+  });
+  window.cerrarSesion = async function(){
+    const pend = (await locAll()).filter(r => r.sync !== 'ok').length;
+    if (pend && !(await pregunta('Hay ' + pend + ' reporte(s) sin enviar a la nube. Si cerrás sesión quedan en este equipo hasta que vuelvas a ingresar.\n¿Cerrar sesión igual?'))) return;
+    await sb.auth.signOut();
+    g('rs-user').textContent = ''; g('rs-salir').style.display = 'none';
+  };
+
+  // ════════ SOLAPAS ════════
+  function irA(tab){
+    document.querySelectorAll('.rs-tab').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+    document.querySelectorAll('.rs-panel').forEach(p => p.classList.toggle('on', p.id === 'rs-tab-' + tab));
+    if (tab !== 'reporte') { renderListas(); sincronizar(true); }
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll('.rs-tab').forEach(b => b.onclick = () => irA(b.dataset.tab));
+
+  // ════════ FIRMAS ════════
+  function firmaData(id){
+    const c = g(id), b = document.createElement('canvas'); b.width = c.width; b.height = c.height;
+    return c.toDataURL() === b.toDataURL() ? '' : c.toDataURL();
+  }
+  function firmaCargar(id, src){
+    clearCanvas(id); if (!src) return;
+    const img = new Image(); img.onload = () => g(id).getContext('2d').drawImage(img, 0, 0); img.src = src;
+  }
+
+  // ════════ REPORTE PRINCIPAL ════════
+  function leerReporte(){
+    const d = {};
+    CAMPOS.forEach(k => d[k] = g(k).value);
+    d.tipo = (document.querySelector('input[name="tipo"]:checked') || {}).value || '';
+    d.tareas = [...document.querySelectorAll('#task-rows textarea')].map(t => t.value);
+    d.repuestos = [...document.querySelectorAll('#rep-table tbody tr')].map(tr => {
+      const i = tr.querySelectorAll('input'); return { desc:i[0].value, cod:i[1].value, cant:i[2].value };
+    });
+    d.firmaCliente = firmaData('canvas-cliente');
+    d.firmaTecnico = firmaData('canvas-tecnico');
+    return d;
+  }
+  function setTipo(t){
+    const r = document.querySelector('input[name="tipo"][value="' + (t || 'Correctivo') + '"]') || g('t-corr');
+    r.checked = true; r.dispatchEvent(new Event('change'));
+  }
+  function escribirReporte(d){
+    d = d || {};
+    CAMPOS.forEach(k => g(k).value = d[k] == null ? '' : d[k]);
+    setTipo(d.tipo);
+    const tareas = (d.tareas && d.tareas.length) ? d.tareas : [''];
+    g('task-rows').innerHTML = ''; tareas.forEach(() => addTask());
+    document.querySelectorAll('#task-rows textarea').forEach((t, i) => t.value = tareas[i] || '');
+    const reps = (d.repuestos && d.repuestos.length) ? d.repuestos : [{}];
+    document.querySelector('#rep-table tbody').innerHTML = ''; reps.forEach(() => addRepuesto());
+    document.querySelectorAll('#rep-table tbody tr').forEach((tr, i) => {
+      const inp = tr.querySelectorAll('input'), r = reps[i] || {};
+      inp[0].value = r.desc || ''; inp[1].value = r.cod || ''; inp[2].value = r.cant || '';
+    });
+    firmaCargar('canvas-cliente', d.firmaCliente);
+    firmaCargar('canvas-tecnico', d.firmaTecnico);
+  }
+  function hoy(){ const t = new Date(); return { f: new Date(t - t.getTimezoneOffset()*60000).toISOString().split('T')[0], d: DIAS[t.getDay()] }; }
+  function reporteVacio(){ const h = hoy(); return { fecha: h.f, dia: h.d, tipo: 'Correctivo' }; }
+
+  // ════════ ATS ════════
+  const atsEls = () => [...document.querySelectorAll('#ats-form input, #ats-form select, #ats-form textarea')].filter(el => el.type !== 'file' && el.type !== 'button');
+  const atsKey = (el, i) => el.id || (el.name ? el.name + '|' + el.value : 'i' + i);
+  function leerATS(){ const o = {}; atsEls().forEach((el, i) => o[atsKey(el, i)] = (el.type === 'checkbox' || el.type === 'radio') ? el.checked : el.value); return o; }
+  function escribirATS(o){ o = o || {}; atsEls().forEach((el, i) => { const v = o[atsKey(el, i)]; if (el.type === 'checkbox' || el.type === 'radio') el.checked = !!v; else el.value = v == null ? '' : v; }); }
+  const atsTieneDatos = o => Object.values(o || {}).some(v => v === true || (typeof v === 'string' && v.trim()));
+
+  // ════════ ESTADO DEL REPORTE ABIERTO ════════
+  function mostrarEstado(){
+    const e = g('rs-estado'); e.className = 'rs-estado';
+    if (!actual) { e.textContent = ''; return; }
+    const quien = actual.creado_por ? ' · cargado por ' + actual.creado_por : '';
+    if (actual.estado === 'finalizado') {
+      e.classList.add('finalizado');
+      e.textContent = '✔ Servicio finalizado el ' + new Date(actual.finalizado).toLocaleString('es-AR') + quien + '. Los cambios que guardes quedan en el historial.';
+    } else {
+      e.classList.add('borrador');
+      e.textContent = '✎ Reporte guardado en curso · última modificación ' + new Date(actual.modificado).toLocaleString('es-AR') + quien;
+    }
+  }
+
+  // ════════ GUARDAR / FINALIZAR ════════
+  async function persistir(estado){
+    const ahora = new Date().toISOString();
+    const rec = {
+      id: actual ? actual.id : 'rs_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      estado,
+      creado: actual ? actual.creado : ahora,
+      modificado: ahora,
+      finalizado: estado === 'finalizado' ? ((actual && actual.finalizado) || ahora) : null,
+      creado_por: (actual && actual.creado_por) || usuario || null,
+      modificado_por: usuario || null,
+      reporte: leerReporte(), ats: leerATS(), parte: PM.leer(),
+      sync: 'pendiente'
+    };
+    await locPut(rec);
+    actual = { id: rec.id, estado: rec.estado, creado: rec.creado, modificado: rec.modificado, finalizado: rec.finalizado, creado_por: rec.creado_por };
+    mostrarEstado();
+    sincronizar(true);
+    return rec;
+  }
+  const destino = () => (sb && navigator.onLine) ? '' : ' (en este equipo; se envía a la nube cuando haya conexión)';
+  window.guardarReporte = async function(){
+    try {
+      const est = actual && actual.estado === 'finalizado' ? 'finalizado' : 'borrador';
+      await persistir(est);
+      toast((est === 'finalizado' ? 'Cambios guardados en el historial' : 'Reporte guardado') + destino());
+    } catch(e) { aviso('No se pudo guardar: ' + e.message); }
+  };
+  window.finalizarReporte = async function(){
+    const r = leerReporte(), faltan = [];
+    [['fecha','fecha'],['hora-inicio','hora de inicio'],['hora-fin','hora de finalización'],['empresa','empresa'],['yacimiento','yacimiento'],
+     ['marca','marca'],['modelo','modelo'],['equipo','equipo / N/S'],['tecnico','técnico responsable']].forEach(([k, n]) => { if (!String(r[k] || '').trim()) faltan.push(n); });
+    if (!r.tareas.some(t => t.trim())) faltan.push('tareas realizadas');
+    const msg = faltan.length ? 'Faltan datos: ' + faltan.join(', ') + '.\n¿Finalizar igual?' : '¿Finalizar el servicio y pasarlo al historial?';
+    if (!(await pregunta(msg))) return;
+    try { await persistir('finalizado'); toast('Servicio finalizado' + destino()); irA('historial'); }
+    catch(e) { aviso('No se pudo guardar: ' + e.message); }
+  };
+  function cargarTodo(rec){ escribirReporte(rec.reporte); escribirATS(rec.ats); PM.escribir(rec.parte); }
+  window.nuevoReporte = async function(){
+    if (!(await pregunta('¿Empezar un reporte nuevo? Se limpian el reporte, el ATS y el parte. Lo que no hayas guardado se pierde.'))) return;
+    actual = null; cargarTodo({ reporte: reporteVacio(), ats: {}, parte: {} }); mostrarEstado(); irA('reporte');
+  };
+  window.resetForm = window.nuevoReporte;
+  window.guardarBorrador = window.guardarReporte;
+  window.imprimirReporte = function(){ irA('reporte'); setTimeout(() => window.print(), 50); };
+
+  // ════════ LISTAS ════════
+  async function contadores(){
+    try {
+      const all = await visibles();
+      g('rs-n-borr').textContent = all.filter(r => r.estado !== 'finalizado').length;
+      g('rs-n-fin').textContent = all.filter(r => r.estado === 'finalizado').length;
+    } catch(e) {}
+  }
+  const fechaAR = iso => iso ? iso.split('-').reverse().join('/') : '—';
+  const buscable = r => { const d = r.reporte || {}, p = r.parte || {};
+    return [d.empresa, d.yacimiento, d.instalacion, d.marca, d.modelo, d.equipo, d.tecnico, d.vehiculo, p.numero, p.unidad, p.cliente, r.creado_por].join(' ').toLowerCase(); };
+
+  function tarjeta(r){
+    const d = r.reporte || {}, fin = r.estado === 'finalizado';
+    const tipoCls = d.tipo === 'Preventivo' ? ' prev' : d.tipo === 'Predictivo' ? ' pred' : '';
+    const docs = (PM.tieneDatos(r.parte || {}) ? '<span class="rs-tag doc">Parte ' + esc((r.parte || {}).numero || '') + '</span>' : '') +
+                 (atsTieneDatos(r.ats) ? '<span class="rs-tag doc">ATS</span>' : '') +
+                 (r.sync !== 'ok' ? '<span class="rs-tag pend">Sin enviar</span>' : '');
+    const lugar = [d.yacimiento, d.instalacion].filter(Boolean).join(' · ');
+    const nt = (d.tareas || []).filter(t => t.trim()).length;
+    const div = document.createElement('div');
+    div.className = 'rs-rec' + (fin ? ' fin' : '');
+    div.innerHTML =
+      '<div><div class="rs-rec-tit">' + fechaAR(d.fecha) + ' · ' + esc(d.empresa || 'Sin empresa') + ' — ' + esc(d.equipo || 'Sin equipo') +
+        '<span class="rs-tag' + tipoCls + '">' + esc(d.tipo || '—') + '</span>' + docs + '</div>' +
+      '<div class="rs-rec-meta">' + esc([lugar, [d.marca, d.modelo].filter(Boolean).join(' ')].filter(Boolean).join(' · ') || 'Sin ubicación') +
+        (d.tecnico ? '<br>Técnico: ' + esc(d.tecnico) : '') + ' · ' + nt + ' tarea' + (nt === 1 ? '' : 's') +
+        '<br>' + (fin ? 'Finalizado ' + new Date(r.finalizado).toLocaleString('es-AR') : 'Modificado ' + new Date(r.modificado).toLocaleString('es-AR')) +
+        (r.creado_por ? ' · ' + esc(r.creado_por) : '') + '</div></div>' +
+      '<div class="rs-rec-btns">' +
+        '<button class="p" data-a="abrir">' + (fin ? 'Ver / editar' : 'Continuar') + '</button>' +
+        (fin ? '<button data-a="imp-rep">Imprimir reporte</button>' +
+               (PM.tieneDatos(r.parte || {}) ? '<button data-a="imp-parte">Imprimir parte</button>' : '') +
+               '<button data-a="duplicar">Duplicar</button>'
+             : '<button data-a="finalizar">Finalizar</button>') +
+        '<button data-a="exportar">Exportar</button><button class="d" data-a="borrar">Eliminar</button></div>';
+    div.querySelectorAll('button').forEach(b => b.onclick = () => accion(b.dataset.a, r.id));
+    return div;
+  }
+  function filtrarHistorial(all){
+    const qt = g('rs-f-texto').value.trim().toLowerCase(), ft = g('rs-f-tipo').value, fd = g('rs-f-desde').value, fh = g('rs-f-hasta').value;
+    return all.filter(r => { const f = (r.reporte || {}).fecha || '';
+      return r.estado === 'finalizado' && (!qt || buscable(r).includes(qt)) && (!ft || (r.reporte || {}).tipo === ft) && (!fd || f >= fd) && (!fh || f <= fh); })
+      .sort((a, b) => ((b.reporte || {}).fecha || '').localeCompare((a.reporte || {}).fecha || '') || (b.finalizado || '').localeCompare(a.finalizado || ''));
+  }
+  async function renderListas(){
+    let all = [];
+    try { all = await visibles(); } catch(e) { aviso('No se pudo leer la base local: ' + e.message); return; }
+    const qb = g('rs-buscar-borr').value.trim().toLowerCase();
+    const borr = all.filter(r => r.estado !== 'finalizado' && (!qb || buscable(r).includes(qb))).sort((a, b) => b.modificado.localeCompare(a.modificado));
+    const lb = g('rs-lista-borr'); lb.innerHTML = '';
+    if (!borr.length) lb.innerHTML = '<div class="rs-vacio">No hay reportes en curso. Usá <b>Guardar</b> en la solapa Reporte para dejar uno pendiente.</div>';
+    borr.forEach(r => lb.appendChild(tarjeta(r)));
+    const fin = filtrarHistorial(all), lf = g('rs-lista-fin'); lf.innerHTML = '';
+    if (!fin.length) lf.innerHTML = '<div class="rs-vacio">' + (all.some(r => r.estado === 'finalizado') ? 'Ningún servicio coincide con los filtros.' : 'Todavía no hay servicios finalizados.') + '</div>';
+    fin.forEach(r => lf.appendChild(tarjeta(r)));
+    contadores();
+  }
+  ['rs-buscar-borr','rs-f-texto','rs-f-tipo','rs-f-desde','rs-f-hasta'].forEach(id => { g(id).addEventListener('input', renderListas); g(id).addEventListener('change', renderListas); });
+
+  function descargar(nombre, contenido, tipo){
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([contenido], {type: tipo}));
+    a.download = nombre; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  const nombreArchivo = rec => { const d = rec.reporte || {};
+    return ('Servicio_VRU_' + (d.fecha || 'sin-fecha') + '_' + (d.empresa || '') + '_' + (d.equipo || '')).replace(/[^\wÁÉÍÓÚáéíóúÑñ.-]+/g, '_').replace(/_+$/, ''); };
+
+  // Para exportar/respaldar: las fotos guardadas en la nube se incluyen como imagen
+  async function conFotosEmbebidas(r){
+    const c = JSON.parse(JSON.stringify(r));
+    const fotos = (c.parte && c.parte.fotos) || [];
+    for (let i = 0; i < fotos.length; i++) {
+      if (typeof fotos[i] === 'string' && !fotos[i].startsWith('data:')) {
+        try {
+          const u = await urlFoto(fotos[i]); const b = await (await fetch(u)).blob();
+          fotos[i] = await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(b); });
+        } catch(e) {}
+      }
+    }
+    delete c.sync;
+    return c;
+  }
+
+  async function accion(a, id){
+    const r = await locGet(id); if (!r) return renderListas();
+    const abrir = () => { actual = { id: r.id, estado: r.estado, creado: r.creado, modificado: r.modificado, finalizado: r.finalizado, creado_por: r.creado_por };
+                          cargarTodo(r); mostrarEstado(); irA('reporte'); };
+    if (a === 'abrir') abrir();
+    else if (a === 'imp-rep') { abrir(); setTimeout(() => window.print(), 500); }
+    else if (a === 'imp-parte') { abrir(); setTimeout(imprimirParte, 1200); }
+    else if (a === 'finalizar') { abrir(); setTimeout(finalizarReporte, 300); }
+    else if (a === 'duplicar') {
+      const d = r.reporte || {}, p = r.parte || {}, h = hoy();
+      const rep = { fecha: h.f, dia: h.d, tipo: d.tipo, empresa: d.empresa, yacimiento: d.yacimiento, instalacion: d.instalacion,
+                    marca: d.marca, modelo: d.modelo, equipo: d.equipo, tecnico: d.tecnico, vehiculo: d.vehiculo, 'firma-tecnico-nombre': d.tecnico };
+      const parte = { cliente: p.cliente, unidad: p.unidad, ubicacion: p.ubicacion, tipo: p.tipo, facturable: p.facturable,
+                      tec0: p.tec0, tec1: p.tec1, tec2: p.tec2, tec3: p.tec3, vehiculo: p.vehiculo, fc0: p.fc0, fc1: p.fc1 };
+      actual = null; cargarTodo({ reporte: rep, ats: {}, parte }); mostrarEstado(); irA('reporte');
+      toast('Reporte nuevo con los datos del cliente y del equipo');
+    }
+    else if (a === 'exportar') descargar(nombreArchivo(r) + '.json', JSON.stringify({ formato: 'reporte-servicio-vru-blau', ...(await conFotosEmbebidas(r)) }), 'application/json');
+    else if (a === 'borrar') {
+      if (!(await pregunta('¿Eliminar este servicio (reporte, ATS y parte)? Se borra también de la nube y de los demás equipos. No se puede deshacer.', {ok:'Eliminar', peligro:true}))) return;
+      if (r.sync === 'pendiente' && !(await existeRemoto(id))) await locDel(id);   // nunca llegó a la nube
+      else { r.sync = 'borrar'; await locPut(r); }
+      if (actual && actual.id === id) { actual = null; mostrarEstado(); }
+      renderListas(); toast('Servicio eliminado'); sincronizar(true);
+    }
+  }
+  async function existeRemoto(id){
+    if (!sb || !navigator.onLine) return true;   // ante la duda, se marca para borrar al sincronizar
+    try { const { data } = await sb.from(TABLA).select('id').eq('id', id).maybeSingle(); return !!data; } catch(e) { return true; }
+  }
+
+  // ════════ ARCHIVOS ════════
+  window.exportarReporte = function(){
+    const rec = { reporte: leerReporte(), ats: leerATS(), parte: PM.leer() };
+    conFotosEmbebidas(rec).then(c => descargar(nombreArchivo(rec) + '.json', JSON.stringify({ formato: 'reporte-servicio-vru-blau', ...c }), 'application/json'));
+  };
+  g('rs-importar').addEventListener('change', e => {
+    const f = e.target.files[0]; if (!f) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      try {
+        const j = JSON.parse(rd.result);
+        if (j.reporte) cargarTodo(j);
+        else if (j.horaInicio !== undefined || j.empresa !== undefined) {
+          cargarTodo({ reporte: { tipo: j.tipo, dia: j.dia, fecha: j.fecha, 'hora-inicio': j.horaInicio, 'hora-fin': j.horaFin,
+            'horas-unidad': j.horasUnidad, arranques: j.arranques, empresa: j.empresa, yacimiento: j.yacimiento, instalacion: j.instalacion,
+            marca: j.marca, modelo: j.modelo, equipo: j.equipo, tecnico: j.tecnico, vehiculo: j.vehiculo, 'firma-tecnico-nombre': j.tecnico,
+            tareas: j.tareas, repuestos: j.repuestos, recomendaciones: j.recomendaciones }, ats: {}, parte: {} });
+        } else throw new Error('formato');
+        actual = null; mostrarEstado(); irA('reporte'); toast('Archivo importado. Guardalo para sumarlo a la lista.');
+      } catch(err) { aviso('El archivo no es un reporte válido.'); }
+    };
+    rd.readAsText(f); e.target.value = '';
+  });
+
+  window.exportarCSV = async function(){
+    const lista = filtrarHistorial(await visibles());
+    if (!lista.length) return aviso('No hay servicios para exportar con los filtros actuales.');
+    const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""').replace(/\r?\n/g, ' / ') + '"';
+    const cab = ['Fecha','Tipo','Empresa','Yacimiento','Instalación','Marca','Modelo','Equipo / N/S','Hora inicio','Hora fin','Horas unidad','Arranques',
+                 'Técnico','Vehículo','Tareas realizadas','Repuestos','Recomendaciones','N° parte','Unidad (parte)','Km','Facturable','ATS','Cargado por'];
+    const filas = [cab.map(q).join(';')].concat(lista.map(r => { const d = r.reporte || {}, p = r.parte || {};
+      return [fechaAR(d.fecha), d.tipo, d.empresa, d.yacimiento, d.instalacion, d.marca, d.modelo, d.equipo, d['hora-inicio'], d['hora-fin'],
+        d['horas-unidad'], d.arranques, d.tecnico, d.vehiculo, (d.tareas || []).filter(t => t.trim()).join(' | '),
+        (d.repuestos || []).filter(x => x.desc).map(x => x.desc + (x.cod ? ' (' + x.cod + ')' : '') + (x.cant ? ' x' + x.cant : '')).join(' | '),
+        d.recomendaciones, p.numero, p.unidad, p.km, p.facturable ? 'Sí' : (PM.tieneDatos(p) ? 'No' : ''), atsTieneDatos(r.ats) ? 'Sí' : 'No', r.creado_por].map(q).join(';'); }));
+    descargar('Historial_servicios_VRU_' + hoy().f + '.csv', '\ufeff' + filas.join('\r\n'), 'text/csv;charset=utf-8');
+  };
+  window.exportarRespaldo = async function(){
+    const all = await visibles();
+    if (!all.length) return aviso('No hay reportes guardados.');
+    toast('Preparando respaldo…');
+    const reportes = []; for (const r of all) reportes.push(await conFotosEmbebidas(r));
+    descargar('Respaldo_servicios_VRU_BLAU_' + hoy().f + '.json', JSON.stringify({ respaldo: 'servicios VRU BLAU CYT', fecha: new Date().toISOString(), reportes }), 'application/json');
+  };
+  g('rs-restaurar').addEventListener('change', e => {
+    const f = e.target.files[0]; if (!f) return;
+    const rd = new FileReader();
+    rd.onload = async () => {
+      try {
+        const j = JSON.parse(rd.result); if (!Array.isArray(j.reportes)) throw new Error('formato');
+        const ex = new Set((await locAll()).map(r => r.id)); let nuevos = 0, reemplazar = null;
+        for (const r of j.reportes) {
+          if (!r.id || !r.reporte) continue;
+          if (ex.has(r.id)) { if (reemplazar === null) reemplazar = await pregunta('Algunos reportes ya existen. ¿Reemplazarlos con la versión del respaldo?'); if (!reemplazar) continue; }
+          else nuevos++;
+          r.sync = 'pendiente'; r.creado_por = r.creado_por || usuario; r.modificado_por = usuario;
+          await locPut(r);
+        }
+        renderListas(); toast('Respaldo cargado · ' + nuevos + ' reporte' + (nuevos === 1 ? '' : 's') + ' nuevo' + (nuevos === 1 ? '' : 's') + '. Enviando a la nube…');
+        sincronizar(false);
+      } catch(err) { aviso('El archivo no es un respaldo válido.'); }
+    };
+    rd.readAsText(f); e.target.value = '';
+  });
+
+  // ════════ INICIO ════════
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+  iniciarSesion();
+  actualizarEstadoSync();
+})();
+</script>
+
+<!-- DIÁLOGO PROPIO (reemplaza confirm/alert, que algunos navegadores o visores bloquean) -->
+<div id="dlg" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:100002; align-items:center; justify-content:center; padding:16px;">
+  <div style="background:#fff; border-radius:10px; max-width:420px; width:100%; box-shadow:0 10px 40px rgba(0,0,0,0.3); font-family:Arial,sans-serif; overflow:hidden;">
+    <div id="dlg-msg" style="padding:20px 20px 16px; font-size:14px; color:#222; line-height:1.5; white-space:pre-line;"></div>
+    <div style="display:flex; gap:8px; justify-content:flex-end; padding:0 16px 16px;">
+      <button id="dlg-no" style="font-family:Arial; font-size:13px; font-weight:700; border:1px solid #c8d0dc; background:#eef2f8; color:#1F3864; border-radius:7px; padding:9px 16px; cursor:pointer;">Cancelar</button>
+      <button id="dlg-si" style="font-family:Arial; font-size:13px; font-weight:700; border:none; background:#2E75B6; color:#fff; border-radius:7px; padding:9px 16px; cursor:pointer;">Aceptar</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  const box = document.getElementById('dlg'), msg = document.getElementById('dlg-msg'),
+        si = document.getElementById('dlg-si'), no = document.getElementById('dlg-no');
+  let resolver = null;
+  function cerrar(v){ box.style.display = 'none'; document.removeEventListener('keydown', teclas); const r = resolver; resolver = null; if (r) r(v); }
+  function teclas(e){ if (e.key === 'Escape') cerrar(false); else if (e.key === 'Enter') { e.preventDefault(); cerrar(true); } }
+  function abrir(texto, opc, conCancelar){
+    if (resolver) cerrar(false);
+    msg.textContent = texto;
+    si.textContent = (opc && opc.ok) || 'Aceptar';
+    si.style.background = opc && opc.peligro ? '#c0392b' : '#2E75B6';
+    no.style.display = conCancelar ? '' : 'none';
+    box.style.display = 'flex';
+    document.addEventListener('keydown', teclas);
+    setTimeout(() => si.focus(), 30);
+    return new Promise(res => resolver = res);
+  }
+  si.onclick = () => cerrar(true);
+  no.onclick = () => cerrar(false);
+  box.addEventListener('click', e => { if (e.target === box) cerrar(false); });
+  window.pregunta = (texto, opc) => abrir(texto, opc, true);
+  window.aviso = texto => abrir(texto, null, false);
+})();
+</script>
+</body>
+</html>
